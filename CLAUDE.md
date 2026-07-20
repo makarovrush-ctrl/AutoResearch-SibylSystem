@@ -170,6 +170,7 @@ Plugin 级 hook（`plugin/hooks/hooks.json`）将后台进程管理从 LLM 下�
 
 | Hook 事件 | 脚本 | 职责 |
 |---|---|---|
+| PreToolUse(Read) | `on-pre-read-doc.sh` | 拦截对 PDF/Office/电子书文件的原生 `Read`，转用 markitdown 转换的 Markdown 缓存文件，节省 token |
 | PostToolUse(Bash) | `on-bash-complete.sh` | 检测 `sync_requested` → 注入飞书同步提示；检测 `experiment_monitor` → 启动 bash 监控 daemon |
 | SessionStart | `on-session-start.sh` | 启动 self-heal 监控 daemon；恢复 pending sync；重启死亡的实验监控 |
 | Stop | `on-stop.sh` | 清理已停止/完成项目的 daemon PID |
@@ -178,6 +179,12 @@ Plugin 级 hook（`plugin/hooks/hooks.json`）将后台进程管理从 LLM 下�
 - **`supervisor_enabled` 配置**（默认 `false`）: 设为 `true` 可额外启动 Opus supervisor subagent 用于复杂异常诊断。对开源用户建议保持 `false` 以节省 API 成本
 - Hook 脚本位于 `plugin/hooks/scripts/`，共享工具函数在 `lib/sibyl-hook-utils.sh`
 - 上下文注入标记: `[LARK-SYNC-HOOK]`（飞书同步）、`[EXP-MONITOR-HOOK]`（实验监控）、`[SIBYL-SESSION-HOOK]`（会话恢复）
+
+### 文档转换（markitdown，节省 token）
+- `sibyl/doc_converter.py` 封装 [markitdown](https://github.com/microsoft/markitdown)：`convert_to_markdown(source)` 转换本地文件或 URL；`convert_and_cache(path)` 在源文件旁生成 `<file>.md` 缓存（按 mtime 判断是否需要重新转换）
+- `on-pre-read-doc.sh`（`PreToolUse(Read)`）对 `pdf/doc/docx/ppt/pptx/xls/xlsx/epub/msg/eml/odt` 文件自动拦截原生 `Read`：调用 `sibyl.doc_converter` 生成/复用 `<file>.md` 缓存，`deny` 原始读取并把 agent 指向缓存文件——原生 `Read` 会把 PDF 渲染成逐页图片消耗大量多模态 token，markitdown 提取的纯文本 Markdown 成本远低于此
+- **图片格式不受影响**：截图/UI 图片必须保留原生视觉读取能力（见根目录 `~/CLAUDE.md` UI 导航规则），因此该 hook 明确排除图片后缀
+- 任何 skill 需要主动摄取外部文档（下载的论文 PDF、grant 草稿 docx 等）也可直接调用 `.venv/bin/python3 -m sibyl.doc_converter <path>`
 
 ### Codex 集成
 - `codex_enabled`: 启用后，idea_debate、result_debate、review 阶段可引入 Codex 独立审查

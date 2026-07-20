@@ -10,6 +10,7 @@ dependencies = [
     "gunicorn>=22.0",
     "flask-sock>=0.7",
     "watchfiles>=0.21",
+    "markitdown[all]>=0.1.0",
 ]
 
 [project.optional-dependencies]
