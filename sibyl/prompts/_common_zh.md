@@ -176,3 +176,32 @@ cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_log_ag
 ```
 
 **日志调用失败不应阻止主任务执行**。如果 cli_log_agent 报错，忽略错误继续正常工作。
+
+## 对话快捷方式 (.command) 创建规范 (CRITICAL)
+
+当需要为用户创建可双击恢复对话的 `.command` 快捷方式时，**必须先读取任意一个已有快捷方式文件作为模板**，然后严格复制其格式。禁止凭记忆或猜测编写。
+
+### 标准模板（所有已有快捷方式统一使用）：
+
+```bash
+#!/bin/bash
+# ▶️ YYYY-MM-DD - <项目名称>
+# Model is auto-detected from the transcript so this conversation
+# always resumes on the model it was created with.
+exec "$HOME/sibyl-research-system/scripts/sibyl-resume.sh" "<session-id>" "let's continue where we left off"
+```
+
+### 规则：
+1. **先读后写**: 读取 `~/Desktop/Sibyl Projects/Conversations/` 下任意一个已有 `.command` 文件，复制其格式
+2. **不要手动 cd**: `sibyl-resume.sh` 会自行解析 REPO_ROOT 并切换目录
+3. **必须通过 `scripts/sibyl-resume.sh` 调用**: 它会从 transcript 读取上一次使用的模型并固定下来（Opus 对话恢复为 Opus，DeepSeek 对话恢复为 DeepSeek）。**禁止直接调用 `claude --resume`** —— 那会继承当前默认模型，导致对话中途静默切换供应商，`scripts/sibyl-model-doctor.sh` 第 3 项检查会判定该快捷方式 "unpinned" 而失败
+4. **保存位置**: 快捷方式保存到 `~/Desktop/Sibyl Projects/Conversations/` 目录
+5. **设置权限**: 创建后执行 `chmod +x <文件路径>`
+6. **获取 session ID**: 从 `~/.claude/projects/-Users-mackenzieboi-sibyl-research-system/` 中最近修改的 `.jsonl` 文件名提取（去掉 `.jsonl` 后缀）
+
+### 禁止事项：
+- 禁止使用 `open .` 或 Finder 命令（用户需要的是恢复对话，不是打开文件夹）
+- 禁止直接调用 `claude --resume`（会破坏模型固定，且无法通过 model-doctor 检查）
+- 旧的 `System/resume-session.sh` 仍被约 19 个历史快捷方式使用，**不要删除**；但新建快捷方式一律使用 `scripts/sibyl-resume.sh`
+- 禁止发明新格式 — 必须与已有快捷方式完全一致
+- 禁止使用相对路径调用 claude
