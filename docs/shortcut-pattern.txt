@@ -1,0 +1,69 @@
+# ═══════════════════════════════════════════════════════════════════════
+# Sibyl Conversation Shortcut Pattern
+# Last updated: 2026-07-30
+# ═══════════════════════════════════════════════════════════════════════
+#
+# When creating a .command shortcut to resume a conversation,
+# copy the pattern below EXACTLY.
+#
+# ─── CORRECT pattern (all current shortcuts use this) ──────────────────
+
+#!/bin/bash
+# ▶️ YYYY-MM-DD - <descriptive title>
+# Model is auto-detected from the transcript so this conversation
+# always resumes on the model it was created with.
+exec "$HOME/sibyl-research-system/scripts/sibyl-resume.sh" "<session-uuid>" "let's continue where we left off"
+
+# ─── WHY sibyl-resume.sh AND NOT `claude --resume` DIRECTLY ────────────
+#
+# sibyl-resume.sh pins the model. It reads the last "model" field from the
+# session transcript and relaunches with the matching --model and
+# --settings, so an Opus conversation resumes as Opus and a DeepSeek
+# conversation resumes as DeepSeek.
+#
+# A bare `claude --resume` inherits whatever the current default model is.
+# That silently switches providers mid-conversation, which is exactly the
+# drift that scripts/sibyl-model-doctor.sh check #4 exists to catch.
+#
+# Check #3 of the doctor FAILS any .command that calls `claude` without one
+# of: sibyl-resume.sh, resume-session.sh, sibyl-launch.sh, SIBYL_CLI_MODEL.
+# A shortcut written with a bare `claude --resume` will be reported as
+# "unpinned". Run the doctor after adding shortcuts:
+#
+#     bash ~/sibyl-research-system/scripts/sibyl-model-doctor.sh
+#
+# ─── RULES ─────────────────────────────────────────────────────────────
+# 1. Call scripts/sibyl-resume.sh via absolute "$HOME/..." path.
+#    Do NOT cd first — the script resolves its own REPO_ROOT and cds there.
+# 2. Save the .command in:  ~/Desktop/Sibyl Projects/Conversations/
+#    Capital C, plural. Never conversation/ singular. Never Unsorted/.
+# 3. Name it:  ▶️ YYYY-MM-DD - <descriptive title>.command
+# 4. chmod +x after creating.
+# 5. Get the session UUID from the most recently modified .jsonl in:
+#    ~/.claude/projects/-Users-mackenzieboi-sibyl-research-system/
+#    Filename minus .jsonl is the UUID. Confirm it is THIS session by
+#    grepping the transcript for a distinctive term from the conversation.
+# 6. Also write the readable summary to:
+#    ~/Desktop/Sibyl Projects/Conversations/Readable/YYYY-MM-DD - <title>.md
+# 7. Verify before announcing:
+#      test -x "$SC"          # executable
+#      bash -n "$SC"          # syntax
+#      test -f <UUID>.jsonl   # transcript exists
+#
+# ─── DO NOT ────────────────────────────────────────────────────────────
+# - Call `claude --resume` directly (breaks model pinning; fails the doctor)
+# - Use System/resume-session.sh (superseded by scripts/sibyl-resume.sh;
+#   it lives outside the repo and has path issues from .command context)
+# - Use `open .` (opens Finder, not Claude)
+# - Invent a new pattern — copy what works
+#
+# ─── OPTIONAL: force a specific provider ───────────────────────────────
+# exec "$HOME/sibyl-research-system/scripts/sibyl-resume.sh" "<uuid>" --model anthropic "prompt"
+#   --model accepts: anthropic | deepseek
+#
+# ─── HISTORY ───────────────────────────────────────────────────────────
+# Pre-2026-07-30 this file documented a bare `claude --resume` pattern and
+# explicitly said NOT to use a wrapper. That was correct for the old
+# resume-session.sh, but became wrong when scripts/sibyl-resume.sh landed
+# (~23 Jul) and model pinning was introduced. Every shortcut created since
+# then uses the wrapper. Previous version: shortcut-pattern.txt.bak-2026-07-30
