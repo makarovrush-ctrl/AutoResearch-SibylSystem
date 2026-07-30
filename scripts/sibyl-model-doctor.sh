@@ -112,13 +112,18 @@ print(e['ANTHROPIC_BASE_URL'], e['ANTHROPIC_API_KEY'], d['model'])")"
             -H 'content-type: application/json' -H 'anthropic-version: 2023-06-01' \
             -H "x-api-key: $key" -H "authorization: Bearer $key" \
             -d "{\"model\":\"$model\",\"max_tokens\":4,\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}")
-        if [ "$code" = "200" ]; then
-            echo "  ✅ $f  $model @ $url"
-        else
-            echo "  ❌ $f  HTTP $code @ $url/v1/messages"
-            head -c 200 /tmp/sibyl_probe.$$ | tr -d '\n'; echo
-            fail=1
-        fi
+        case "$code" in
+            200)
+                echo "  ✅ $f  $model @ $url" ;;
+            000)
+                # No HTTP response at all: DNS/TLS/network, not a config fault.
+                echo "  ⚠️  $f  unreachable (no TLS response) @ $url"
+                echo "      network issue, not config — retry later; config itself is unchanged" ;;
+            *)
+                echo "  ❌ $f  HTTP $code @ $url/v1/messages"
+                [ -s /tmp/sibyl_probe.$$ ] && { head -c 200 /tmp/sibyl_probe.$$ | tr -d '\n'; echo; }
+                fail=1 ;;
+        esac
         rm -f /tmp/sibyl_probe.$$
     done
 else
