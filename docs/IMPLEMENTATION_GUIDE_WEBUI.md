@@ -106,7 +106,7 @@ Dashboard 测试通过 `monkeypatch.setattr(srv, "_AUTH_KEY", "")` 禁用认证�
  "message": {"role": "assistant", "content": [
    {"type": "text", "text": "..."},
    {"type": "tool_use", "id": "toolu_...", "name": "Bash", "input": {"command": "..."}}
- ], "model": "claude-opus-4-6", "usage": {"input_tokens": N, "output_tokens": N}}}
+ ], "model": "deepseek-v4-pro", "usage": {"input_tokens": N, "output_tokens": N}}}
 
 // user 消息（含 tool_result）
 {"type": "user", "uuid": "...", "message": {"role": "user", "content": [
@@ -324,7 +324,7 @@ class TestConversationWatcher:
             "message": {
                 "role": "assistant",
                 "content": [{"type": "text", "text": "Hello"}],
-                "model": "claude-sonnet-4-6",
+                "model": "deepseek-v4-pro",
                 "usage": {"input_tokens": 100, "output_tokens": 50},
             },
         }

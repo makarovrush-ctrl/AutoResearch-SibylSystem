@@ -3,6 +3,8 @@
 #   bash ~/sibyl-research-system/scripts/sibyl-model-doctor.sh
 set -u
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=scripts/sibyl-model-env.sh
+source "$REPO_ROOT/scripts/sibyl-model-env.sh"
 SHORTCUTS="$HOME/Desktop/Sibyl Projects"
 fail=0
 
@@ -108,13 +110,15 @@ if [ "${1:-}" = "--live" ]; then
 import json,sys
 d=json.load(open('$HOME/.claude/$f')); e=d['env']
 print(e['ANTHROPIC_BASE_URL'], e['ANTHROPIC_API_KEY'], d['model'])")"
+        # CLI aliases (opus, opus[1m]) are not valid raw API model ids.
+        api_model="$(sibyl_model_api_id "$model")"
         code=$(curl -s -o /tmp/sibyl_probe.$$ -w '%{http_code}' -m 30 -X POST "$url/v1/messages" \
             -H 'content-type: application/json' -H 'anthropic-version: 2023-06-01' \
             -H "x-api-key: $key" -H "authorization: Bearer $key" \
-            -d "{\"model\":\"$model\",\"max_tokens\":4,\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}")
+            -d "{\"model\":\"$api_model\",\"max_tokens\":4,\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}")
         case "$code" in
             200)
-                echo "  ✅ $f  $model @ $url" ;;
+                echo "  ✅ $f  $(sibyl_model_label "$model") [$api_model] @ $url" ;;
             000)
                 # No HTTP response at all: DNS/TLS/network, not a config fault.
                 echo "  ⚠️  $f  unreachable (no TLS response) @ $url"

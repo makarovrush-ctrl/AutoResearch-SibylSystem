@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# ──────────────────────────────────────────────────────────────────────────
+# Sibyl Cost Meter — Watch API costs in a persistent terminal pane
+#
+# Usage:
+#   scripts/cost-meter [project-name]       Watch specific project
+#   scripts/cost-meter --all                 Watch all projects
+#   scripts/cost-meter --report [project]    One-shot report
+#
+# Tip: Run this in a tmux split or a dedicated terminal tab alongside
+# your main Claude Code session.
+# ──────────────────────────────────────────────────────────────────────────
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+VENV_PYTHON="$REPO_ROOT/.venv/bin/python3"
+
+# Ensure we're in the repo and have the venv
+cd "$REPO_ROOT"
+
+if [ $# -eq 0 ]; then
+    # No args: show all projects
+    exec "$VENV_PYTHON" -m sibyl.cli cost --watch --all
+elif [ "$1" = "--all" ]; then
+    exec "$VENV_PYTHON" -m sibyl.cli cost --watch --all
+elif [ "$1" = "--report" ]; then
+    shift
+    if [ $# -eq 0 ]; then
+        exec "$VENV_PYTHON" -m sibyl.cli cost --all
+    else
+        exec "$VENV_PYTHON" -m sibyl.cli cost "$@"
+    fi
+else
+    exec "$VENV_PYTHON" -m sibyl.cli cost --watch --scan "$@"
+fi

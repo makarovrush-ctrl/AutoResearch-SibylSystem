@@ -61,11 +61,33 @@ PY
     fi
 }
 
+# Human-readable name for a CLI model string.
+sibyl_model_label() {
+    case "$1" in
+        "opus[1m]")       echo "Opus 5 (1M context)" ;;
+        claude-opus-5)    echo "Opus 5" ;;
+        claude-opus-4-8)  echo "Opus 4.8" ;;
+        deepseek-v4-pro)  echo "DeepSeek v4 Pro" ;;
+        deepseek-v4-flash) echo "DeepSeek v4 Flash" ;;
+        *)                echo "$1" ;;
+    esac
+}
+
+# Raw API model id (for direct API probes; CLI aliases 404 at the API).
+sibyl_model_api_id() {
+    case "$1" in
+        "opus[1m]"|opus)  echo "claude-opus-5" ;;
+        sonnet)           echo "claude-sonnet-4-5" ;;
+        *)                echo "$1" ;;
+    esac
+}
+
 sibyl_model_banner() {
+    local label; label="$(sibyl_model_label "$SIBYL_CLI_MODEL")"
     if [ "$SIBYL_MODEL_KIND" = "anthropic" ]; then
-        echo "  🧠  MODEL: $SIBYL_CLI_MODEL  (Anthropic — quality mode)"
+        echo "  🧠  MODEL: $label  (Anthropic — quality mode)  [$SIBYL_CLI_MODEL]"
     else
-        echo "  💰  MODEL: $SIBYL_CLI_MODEL  (DeepSeek — cost-saving mode)"
+        echo "  💰  MODEL: $label  (DeepSeek — cost-saving mode)  [$SIBYL_CLI_MODEL]"
     fi
     echo "      endpoint: $ANTHROPIC_BASE_URL"
 }
@@ -77,4 +99,14 @@ sibyl_pin_exact_model() {
     [ -n "$exact" ] || return 0
     export ANTHROPIC_MODEL="$exact"
     export SIBYL_CLI_MODEL="$exact"
+}
+
+# The configured default model for a provider (from its settings file).
+sibyl_default_model_for() {
+    local kind="${1:-anthropic}" f
+    case "$kind" in
+        deepseek) f="$HOME/.claude/settings.deepseek.json" ;;
+        *)        f="$HOME/.claude/settings.anthropic.json" ;;
+    esac
+    python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['model'])" "$f" 2>/dev/null
 }

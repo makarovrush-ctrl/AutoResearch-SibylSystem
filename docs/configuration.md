@@ -260,13 +260,13 @@ See [setup guide](setup-guide.md#step-10-ai-research-skills-optional) for instal
 
 ## Model Routing
 
-Advanced: control which Claude model each agent tier uses.
+Advanced: control which model each agent tier uses.
 
 ```yaml
 model_tiers:
-  heavy: "claude-opus-4-6"      # Synthesis, supervision, editing, review
-  standard: "claude-opus-4-6"   # Literature, planning, experiments, writing
-  light: "claude-sonnet-4-6"    # Debate, cross-review, section critique
+  heavy: "deepseek-reasoner"    # Synthesis, supervision, editing, review (R1 chain-of-thought)
+  standard: "deepseek-v4-pro"   # Literature, planning, experiments, writing
+  light: "deepseek-v4-pro"      # Debate, cross-review, section critique (uses _common_light.md)
 ```
 
 ### Agent-to-Tier Mapping

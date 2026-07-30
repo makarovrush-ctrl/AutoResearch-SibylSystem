@@ -6,14 +6,33 @@ One rule: **the model is chosen explicitly at launch, never inherited.**
 
 | Entry point | Model |
 |---|---|
-| `Start New Sibyl Project (Opus 4.8).command` | `claude-opus-4-8` (Anthropic) |
+| `Start New Sibyl Project (Opus 5).command` | `opus[1m]` → Opus 5, 1M context (Anthropic) |
 | `Start New Sibyl Project (DeepSeek v4 pro).command` | `deepseek-v4-pro` (DeepSeek) |
 | `Sibyl Research System.command` (no arg) | Anthropic; `--deepseek` for cost mode |
-| any resume shortcut | the same model recorded in that session's transcript |
+| any resume shortcut | same **provider** as the transcript; model upgraded to your default |
 | plain `claude` | `model` field in `~/.claude/settings.json` (Anthropic) |
 
 Provider credentials live in `~/.claude/settings.{anthropic,deepseek}.json`
 (chmod 600, outside git). Each launcher passes `--settings` **and** `--model`.
+
+## Model strings: alias vs API id
+
+`opus[1m]` is a **Claude Code alias** for "Opus 5, 1M context" — it is what
+`/model` persists, and it is what `--model` expects. It is **not** a valid raw
+API model id (`POST /v1/messages` with it returns 404). The real id is
+`claude-opus-5`. `sibyl_model_api_id` translates alias → id for direct API
+probes; never send an alias to the API.
+
+## Resuming: provider is sacred, model is not
+
+Resuming preserves the **provider** absolutely — a DeepSeek chat never reopens
+on Anthropic and, more importantly, an Anthropic chat never reopens on DeepSeek.
+Within Anthropic, an older model is upgraded to your configured default (an Opus
+4.8 chat reopens on Opus 5) and the banner says so. To pin the original exactly:
+
+```bash
+SIBYL_KEEP_EXACT_MODEL=1 <shortcut>
+```
 
 ## Two rules that must not be broken
 
