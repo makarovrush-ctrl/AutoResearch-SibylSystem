@@ -19,6 +19,9 @@ tools/*/.tmp-state/
 !.claude/agents/*.md
 !.claude/skills/
 !.claude/skills/**/SKILL.md
+!.claude/settings.json
+!.claude/hooks/
+!.claude/hooks/*.sh
 .claude/settings.local.json
 
 # Legacy experiment artifacts (pre-v5)
@@ -47,3 +50,4 @@ cli_pause
 进入
 连续失败
 重试一次
+.aider*

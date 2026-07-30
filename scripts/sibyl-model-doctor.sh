@@ -60,8 +60,17 @@ PY
 echo "── 5. Core operating config must be committed, not just sitting in the tree ──"
 # CLAUDE.md carried the identity / SOP / mission blocks unstaged from 2026-07-20
 # to 2026-07-30. Uncommitted config does not survive a reset, clone or self-heal.
-CORE_FILES="CLAUDE.md sibyl/prompts/_common_zh.md"
+CORE_FILES="CLAUDE.md sibyl/prompts/_common_zh.md \
+scripts/sibyl-model-env.sh scripts/sibyl-launch.sh scripts/sibyl-resume.sh \
+scripts/sibyl-model-doctor.sh .claude/hooks/on-conversation-start.sh"
 dirty_core=""
+# Untracked is worse than dirty: it vanishes on clone/reset without warning.
+for cf in $CORE_FILES; do
+    if [ -f "$REPO_ROOT/$cf" ] \
+       && ! git -C "$REPO_ROOT" ls-files --error-unmatch "$cf" >/dev/null 2>&1; then
+        dirty_core="$dirty_core $cf(UNTRACKED)"
+    fi
+done
 for cf in $CORE_FILES; do
     if [ -f "$REPO_ROOT/$cf" ] \
        && ! git -C "$REPO_ROOT" diff --quiet -- "$cf" 2>/dev/null; then
@@ -90,6 +99,30 @@ if [ -f "$PATTERN_SRC" ]; then
     else
         echo "  ✅ shortcut pattern mirrored in repo"
     fi
+fi
+
+echo "── 6. Live endpoint check (add --live to run; makes 1 tiny API call each) ──"
+if [ "${1:-}" = "--live" ]; then
+    for f in settings.anthropic.json settings.deepseek.json; do
+        read -r url key model <<<"$(python3 -c "
+import json,sys
+d=json.load(open('$HOME/.claude/$f')); e=d['env']
+print(e['ANTHROPIC_BASE_URL'], e['ANTHROPIC_API_KEY'], d['model'])")"
+        code=$(curl -s -o /tmp/sibyl_probe.$$ -w '%{http_code}' -m 30 -X POST "$url/v1/messages" \
+            -H 'content-type: application/json' -H 'anthropic-version: 2023-06-01' \
+            -H "x-api-key: $key" -H "authorization: Bearer $key" \
+            -d "{\"model\":\"$model\",\"max_tokens\":4,\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}]}")
+        if [ "$code" = "200" ]; then
+            echo "  ✅ $f  $model @ $url"
+        else
+            echo "  ❌ $f  HTTP $code @ $url/v1/messages"
+            head -c 200 /tmp/sibyl_probe.$$ | tr -d '\n'; echo
+            fail=1
+        fi
+        rm -f /tmp/sibyl_probe.$$
+    done
+else
+    echo "  (skipped)"
 fi
 
 echo
