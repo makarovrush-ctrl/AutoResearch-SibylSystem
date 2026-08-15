@@ -64,9 +64,13 @@ PY
 # Human-readable name for a CLI model string.
 sibyl_model_label() {
     case "$1" in
-        "opus[1m]")       echo "Opus 5 (1M context)" ;;
+        "opus[1m]")       echo "Opus 5 (1M context — PREMIUM BILLING)" ;;
+        opus)             echo "Opus 5" ;;
         claude-opus-5)    echo "Opus 5" ;;
         claude-opus-4-8)  echo "Opus 4.8" ;;
+        sonnet)           echo "Sonnet 5" ;;
+        claude-sonnet-5)  echo "Sonnet 5" ;;
+        claude-sonnet-4-6) echo "Sonnet 4.6" ;;
         deepseek-v4-pro)  echo "DeepSeek v4 Pro" ;;
         deepseek-v4-flash) echo "DeepSeek v4 Flash" ;;
         *)                echo "$1" ;;
@@ -77,7 +81,7 @@ sibyl_model_label() {
 sibyl_model_api_id() {
     case "$1" in
         "opus[1m]"|opus)  echo "claude-opus-5" ;;
-        sonnet)           echo "claude-sonnet-4-5" ;;
+        sonnet)           echo "claude-sonnet-5" ;;
         *)                echo "$1" ;;
     esac
 }
@@ -97,7 +101,13 @@ sibyl_model_banner() {
 sibyl_pin_exact_model() {
     local exact="${1:-}"
     [ -n "$exact" ] || return 0
-    export ANTHROPIC_MODEL="$exact"
+    # Deliberately does NOT export ANTHROPIC_MODEL. That variable is sticky and
+    # outlives the --model flag (see "Two rules" in docs/model-routing.md — it
+    # is what made Opus sessions reopen on DeepSeek for ~2 weeks). Every
+    # launcher passes --model "$SIBYL_CLI_MODEL" explicitly, which is
+    # authoritative, so setting SIBYL_CLI_MODEL alone is both sufficient
+    # and safe. This matters more now that resume pins the exact model by
+    # default, making this the common path rather than an opt-in.
     export SIBYL_CLI_MODEL="$exact"
 }
 

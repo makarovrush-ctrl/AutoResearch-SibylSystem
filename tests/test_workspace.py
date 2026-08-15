@@ -59,8 +59,13 @@ class TestWorkspaceInit:
         skills_link = ws.root / ".claude" / "skills"
         assert agents_link.is_symlink()
         assert skills_link.is_symlink()
-        assert agents_link.resolve() == (Path(__file__).resolve().parents[1] / ".claude" / "agents")
-        assert skills_link.resolve() == (Path(__file__).resolve().parents[1] / ".claude" / "skills")
+        # .resolve() on both sides: the repo's own .claude/agents is itself a
+        # symlink to the active provider dir (agents-anthropic / agents-deepseek),
+        # so a workspace link legitimately resolves to that target rather than to
+        # the literal ".claude/agents" path.
+        repo_claude = Path(__file__).resolve().parents[1] / ".claude"
+        assert agents_link.resolve() == (repo_claude / "agents").resolve()
+        assert skills_link.resolve() == (repo_claude / "skills").resolve()
 
 
 class TestWorkspaceOpenExisting:

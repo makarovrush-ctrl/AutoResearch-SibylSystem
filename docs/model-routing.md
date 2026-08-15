@@ -6,10 +6,10 @@ One rule: **the model is chosen explicitly at launch, never inherited.**
 
 | Entry point | Model |
 |---|---|
-| `Start New Sibyl Project (Opus 5).command` | `opus[1m]` → Opus 5, 1M context (Anthropic) |
+| `Start New Sibyl Project (Opus 5).command` | `opus` → Opus 5, standard 200K context (Anthropic) |
 | `Start New Sibyl Project (DeepSeek v4 pro).command` | `deepseek-v4-pro` (DeepSeek) |
 | `Sibyl Research System.command` (no arg) | Anthropic; `--deepseek` for cost mode |
-| any resume shortcut | same **provider** as the transcript; model upgraded to your default |
+| any resume shortcut | same **provider and model** as the transcript |
 | plain `claude` | `model` field in `~/.claude/settings.json` (Anthropic) |
 
 Provider credentials live in `~/.claude/settings.{anthropic,deepseek}.json`
@@ -17,21 +17,33 @@ Provider credentials live in `~/.claude/settings.{anthropic,deepseek}.json`
 
 ## Model strings: alias vs API id
 
-`opus[1m]` is a **Claude Code alias** for "Opus 5, 1M context" — it is what
-`/model` persists, and it is what `--model` expects. It is **not** a valid raw
-API model id (`POST /v1/messages` with it returns 404). The real id is
-`claude-opus-5`. `sibyl_model_api_id` translates alias → id for direct API
-probes; never send an alias to the API.
+`opus` / `opus[1m]` are **Claude Code aliases** — they are what `/model`
+persists and what `--model` expects. They are **not** valid raw API model ids
+(`POST /v1/messages` with one returns 404). The real id is `claude-opus-5`.
+`sibyl_model_api_id` translates alias → id for direct API probes; never send an
+alias to the API.
 
-## Resuming: provider is sacred, model is not
+## Why not `opus[1m]`
+
+The 1M-context alias is deliberately **not** the default. Anthropic bills any
+request whose context exceeds 200K at a premium: **2x** on input/cache and
+**1.5x** on output. Transcript audit found 782 such calls carrying **$1,268** of
+pure surcharge — with no quality benefit, since a 400K-token context degrades
+retrieval rather than improving it. Use `opus[1m]` only for a deliberate
+whole-codebase pass, never as a standing default.
+
+## Resuming: provider and model are both preserved
 
 Resuming preserves the **provider** absolutely — a DeepSeek chat never reopens
 on Anthropic and, more importantly, an Anthropic chat never reopens on DeepSeek.
-Within Anthropic, an older model is upgraded to your configured default (an Opus
-4.8 chat reopens on Opus 5) and the banner says so. To pin the original exactly:
+The **model is preserved too**: a Sonnet thread reopens on Sonnet.
+
+The old rule "upgraded" every resumed chat to the configured default, which
+meant each resume silently re-entered the most expensive model available. That
+escalator is removed. To opt in to upgrading:
 
 ```bash
-SIBYL_KEEP_EXACT_MODEL=1 <shortcut>
+SIBYL_UPGRADE_MODEL=1 <shortcut>
 ```
 
 ## Two rules that must not be broken

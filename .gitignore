@@ -17,6 +17,14 @@ tools/*/.tmp-state/
 .claude/*
 !.claude/agents/
 !.claude/agents/*.md
+# The real tier definitions live in agents-<provider>/; `.claude/agents` is only
+# a symlink to whichever is active. Without these negations the files that
+# decide which model EVERY skill runs on were silently untracked, which is how
+# the Anthropic tiers drifted to Opus-for-everything unnoticed.
+!.claude/agents-anthropic/
+!.claude/agents-anthropic/*.md
+!.claude/agents-deepseek/
+!.claude/agents-deepseek/*.md
 !.claude/skills/
 !.claude/skills/**/SKILL.md
 !.claude/settings.json

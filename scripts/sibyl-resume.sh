@@ -51,19 +51,22 @@ else
 fi
 
 sibyl_apply_model "$KIND"
-    # Provider is preserved absolutely. The model *within* the provider is
-    # upgraded to your configured default (e.g. an old Opus 4.8 chat reopens on
-    # Opus 5) — an upgrade, never a downgrade, and always announced.
-    # Set SIBYL_KEEP_EXACT_MODEL=1 to reopen on the exact original model.
+    # Provider is preserved absolutely, and so is the model within it.
+    # Resuming reopens the session on the SAME model it was recorded with.
+    # Rationale: the old rule silently "upgraded" every resumed chat to the
+    # configured default, so each resume of an old Sonnet/Opus-4.8 thread
+    # re-entered the most expensive model available — a cost escalator that
+    # fired on every resume without the user ever choosing it.
+    # Set SIBYL_UPGRADE_MODEL=1 to opt in to the old upgrade behaviour.
 DEFAULT_MODEL="$(sibyl_default_model_for "$KIND")"
 if [ -n "${EXACT:-}" ] && [ "$EXACT" != "$DEFAULT_MODEL" ]; then
-    if [ -n "${SIBYL_KEEP_EXACT_MODEL:-}" ]; then
-        sibyl_pin_exact_model "$EXACT"
-        ORIGIN="$ORIGIN — kept exactly (SIBYL_KEEP_EXACT_MODEL=1)"
-    elif [ "$(sibyl_model_api_id "$EXACT")" = "$(sibyl_model_api_id "$DEFAULT_MODEL")" ]; then
+    if [ "$(sibyl_model_api_id "$EXACT")" = "$(sibyl_model_api_id "$DEFAULT_MODEL")" ]; then
         : # same underlying model, different alias — keep the configured default
+    elif [ -n "${SIBYL_UPGRADE_MODEL:-}" ]; then
+        ORIGIN="$ORIGIN — upgraded to your default $(sibyl_model_label "$DEFAULT_MODEL") (SIBYL_UPGRADE_MODEL=1)"
     else
-        ORIGIN="$ORIGIN — upgraded to your default $(sibyl_model_label "$DEFAULT_MODEL")"
+        sibyl_pin_exact_model "$EXACT"
+        ORIGIN="$ORIGIN — kept on $(sibyl_model_label "$EXACT")"
     fi
 fi
 

@@ -12,7 +12,7 @@ class AgentConfig:
     persisted so older configs continue to load cleanly, but they are not the
     primary runtime control surface.
     """
-    model: str = "claude-opus-4-6"
+    model: str = "deepseek-v4-pro"
     max_tokens: int = 64000
     temperature: float = 0.7
 
@@ -28,10 +28,10 @@ class Config:
     writing: AgentConfig = field(default_factory=lambda: AgentConfig(temperature=0.5))
     max_parallel_tasks: int = 4
     idea_exp_cycles: int = 6
-    idea_validation_rounds: int = 4
+    idea_validation_rounds: int = 5
     max_iterations: int = 10
     max_iterations_cap: int = 100
-    experiment_timeout: int = 300
+    experiment_timeout: int = 3600
     review_enabled: bool = True
 
     # Language for user-facing / non-paper agent output ("en" or "zh")
@@ -59,8 +59,8 @@ class Config:
     gpu_aggressive_threshold_pct: int = 25  # VRAM usage % below which GPU is "available"
 
     # Pilot experiments
-    pilot_samples: int = 100
-    pilot_timeout: int = 900  # 15 min
+    pilot_samples: int = 200
+    pilot_timeout: int = 1800  # 30 min
     pilot_seeds: list[int] = field(default_factory=lambda: [42])
 
     # Full experiments
@@ -71,8 +71,8 @@ class Config:
     research_focus: int = 3
 
     # Multi-agent debate
-    debate_rounds: int = 2
-    writing_revision_rounds: int = 2
+    debate_rounds: int = 5
+    writing_revision_rounds: int = 4
 
     # Codex integration
     codex_enabled: bool = False
@@ -116,9 +116,14 @@ class Config:
 
     # Experiment supervisor (Opus background subagent)
     # When False (default), experiment monitoring runs as a pure bash daemon
-    # launched by the PostToolUse hook — zero LLM token cost.
-    # When True, an Opus subagent is additionally started for anomaly
-    # investigation (drift detection, stuck process diagnosis).
+    # launched by the PostToolUse hook — zero LLM token cost. The daemon already
+    # covers polling, GPU refresh, dispatch and stuck detection.
+    # Set True only when you need an Opus subagent for anomaly investigation
+    # (drift detection, stuck process diagnosis, runtime intervention). That
+    # subagent runs for the whole duration of every experiment, so it is a
+    # standing token cost, not a per-call one.
+    # NB: this defaulted to True, which contradicted CLAUDE.md, the
+    # build_experiment_monitor docstring and the test suite alike.
     supervisor_enabled: bool = False
 
     # Orchestra external skills integration
@@ -128,21 +133,61 @@ class Config:
 
     # Model routing
     model_tiers: dict = field(default_factory=lambda: {
-        "heavy":    "claude-opus-4-6",
-        "standard": "claude-opus-4-6",
-        "light":    "claude-sonnet-4-6",
+        "heavy":    "deepseek-reasoner",
+        "standard": "deepseek-v4-pro",
+        "light":    "deepseek-v4-pro",
     })
     agent_tier_map: dict = field(default_factory=lambda: {
-        # Heavy: deep reasoning
-        "synthesizer": "heavy", "supervisor": "heavy",
-        "supervisor_decision": "heavy", "editor": "heavy",
-        "final_critic": "heavy", "critic": "heavy", "reflection": "heavy",
-        # Standard: literature research (needs tool use + reasoning)
+        # ── Heavy (R1): deep reasoning, synthesis, critique, decisions ──
+        "synthesizer": "heavy",
+        "supervisor": "heavy",
+        "supervisor_decision": "heavy",
+        "editor": "heavy",
+        "final_critic": "heavy",
+        "critic": "heavy",
+        "reflection": "heavy",
+        "idea_validation_decision": "heavy",
+        "methodologist": "heavy",
+        "planner": "heavy",
+        "result_synthesizer": "heavy",
+        "novelty_checker": "heavy",
+        "revisionist": "heavy",
+        # ── Standard (V4-Pro): research, writing, debate, rebuttal ──
         "literature_researcher": "standard",
-        # Light: simple evaluation
-        "optimist": "light", "skeptic": "light", "strategist": "light",
-        "section_critic": "light", "idea_critique": "light",
-        # Everything else defaults to standard
+        "literature": "standard",
+        "innovator": "standard",
+        "theoretical": "standard",
+        "interdisciplinary": "standard",
+        "empiricist": "standard",
+        "contrarian": "standard",
+        "pragmatist": "standard",
+        "comparativist": "standard",
+        "experimenter": "standard",
+        "server_experimenter": "standard",
+        "experiment_supervisor": "standard",
+        "outline_writer": "standard",
+        "section_writer": "standard",
+        "latex_writer": "standard",
+        "simulated_reviewer": "standard",
+        "rebuttal_scholar": "standard",
+        "rebuttal_theorist": "standard",
+        "rebuttal_experimentalist": "standard",
+        "rebuttal_synthesizer": "standard",
+        "rebuttal_strategist": "standard",
+        "rebuttal_diplomat": "standard",
+        "rebuttal_advocate": "standard",
+        "rebuttal_checker": "standard",
+        "rebuttal_writer": "standard",
+        # ── Light (V4-Pro): quick evaluation, mechanical tasks ──
+        "optimist": "light",
+        "skeptic": "light",
+        "strategist": "light",
+        "section_critic": "light",
+        "idea_critique": "light",
+        "codex_reviewer": "light",
+        "codex_writer": "light",
+        "sequential_writer": "light",
+        "lark_sync": "light",
     })
 
     @staticmethod
