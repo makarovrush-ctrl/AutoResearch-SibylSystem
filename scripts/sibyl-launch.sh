@@ -47,6 +47,20 @@ fi
 echo ""
 
 if [ "$COST_ONLY" = false ]; then
-    exec "$HOME/.local/bin/claude" --bare \
+    # --plugin-dir is REQUIRED, not optional. Without it the sibyl-research
+    # plugin never loads, which means no /sibyl-research:* commands and none of
+    # the PreToolUse/PostToolUse/SessionStart/Stop hooks. The orchestration loop
+    # is driven entirely by those, so without this flag Sibyl silently degrades
+    # into a plain Claude Code session and autoresearch cannot run at all.
+    # Cost of loading it: ~485 tokens always-on.
+    #
+    # --bare was removed deliberately. It is documented as "skip hooks, LSP,
+    # plugin sync ... and CLAUDE.md auto-discovery" — every one of which Sibyl
+    # depends on. It was added to stop provider hijacking, but that is already
+    # guaranteed by sibyl_apply_model (which unsets inherited routing and
+    # exports the provider env explicitly) plus the explicit --model/--settings
+    # flags below.
+    exec "$HOME/.local/bin/claude" \
+        --plugin-dir "$REPO_ROOT/plugin" \
         --model "$SIBYL_CLI_MODEL" --settings "$SIBYL_SETTINGS"
 fi

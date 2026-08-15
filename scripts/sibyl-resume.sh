@@ -77,9 +77,13 @@ echo "      ($ORIGIN)"
 echo ""
 
 if [ -n "${SIBYL_DRY_RUN:-}" ]; then
-    echo "[dry-run] claude --resume $SESSION_ID --model $SIBYL_CLI_MODEL --settings $SIBYL_SETTINGS"
+    echo "[dry-run] claude --plugin-dir $REPO_ROOT/plugin --resume $SESSION_ID --model $SIBYL_CLI_MODEL --settings $SIBYL_SETTINGS"
     exit 0
 fi
 
-exec "$HOME/.local/bin/claude" --resume "$SESSION_ID" \
+# --plugin-dir must be passed on resume too: plugins are per-session, so a
+# resumed session without it loses every /sibyl-research:* command and hook.
+exec "$HOME/.local/bin/claude" \
+    --plugin-dir "$REPO_ROOT/plugin" \
+    --resume "$SESSION_ID" \
     --model "$SIBYL_CLI_MODEL" --settings "$SIBYL_SETTINGS" "$PROMPT"
