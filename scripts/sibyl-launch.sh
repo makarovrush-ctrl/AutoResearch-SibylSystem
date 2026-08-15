@@ -32,11 +32,16 @@ done
 
 # shellcheck source=scripts/sibyl-model-env.sh
 source "$REPO_ROOT/scripts/sibyl-model-env.sh"
+# shellcheck source=scripts/sibyl-cost-guards.sh
+source "$REPO_ROOT/scripts/sibyl-cost-guards.sh"
 [ "$COST_ONLY" = true ] && export SIBYL_NO_AGENT_SWAP=1
 sibyl_apply_model "$MODEL"
 
 echo ""
 sibyl_model_banner
+# Re-assert the cost invariants on every launch. Silent when healthy; if a
+# fixed regression has crept back, it says so here before any tokens are spent.
+sibyl_cost_guards quiet || true
 echo ""
 
 if [ -n "$PROJECT_ARG" ]; then
@@ -60,6 +65,10 @@ if [ "$COST_ONLY" = false ]; then
     # guaranteed by sibyl_apply_model (which unsets inherited routing and
     # exports the provider env explicitly) plus the explicit --model/--settings
     # flags below.
+    if [ -n "${SIBYL_DRY_RUN:-}" ]; then
+        echo "[dry-run] claude --plugin-dir $REPO_ROOT/plugin --model $SIBYL_CLI_MODEL --settings $SIBYL_SETTINGS"
+        exit 0
+    fi
     exec "$HOME/.local/bin/claude" \
         --plugin-dir "$REPO_ROOT/plugin" \
         --model "$SIBYL_CLI_MODEL" --settings "$SIBYL_SETTINGS"

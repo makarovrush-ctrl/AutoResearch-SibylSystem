@@ -103,7 +103,13 @@ if [ -f "$PATTERN_SRC" ]; then
     fi
 fi
 
-echo "── 6. Live endpoint check (add --live to run; makes 1 tiny API call each) ──"
+echo "── 6. Cost-regression guards ──"
+# Defined once in scripts/sibyl-cost-guards.sh and re-checked on every launch,
+# so the doctor and the launcher can never disagree about what "healthy" means.
+source "$REPO_ROOT/scripts/sibyl-cost-guards.sh"
+sibyl_cost_guards || fail=1
+
+echo "── 7. Live endpoint check (add --live to run; makes 1 tiny API call each) ──"
 if [ "${1:-}" = "--live" ]; then
     for f in settings.anthropic.json settings.deepseek.json; do
         read -r url key model <<<"$(python3 -c "
