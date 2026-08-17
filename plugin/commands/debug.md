@@ -24,7 +24,7 @@ Debug 模式：单步执行编排循环，不启动 Ralph Loop，方便调试和
 
 ## 输入方式
 
-- Markdown 路径: `workspaces/project/spec.md`
+- Markdown 路径: `<workspaces_dir>/project/spec.md`（`workspaces_dir` 见 `config.yaml`）
 - 纯文本 topic
 - 项目名称（已初始化的项目直接跳过初始化）
 
@@ -46,9 +46,12 @@ cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_list_p
 ```
 展示项目状态表格。
 
-1. **判断参数并初始化**（如果项目已存在则跳过初始化）：
-   - 从参数中提取项目名（如果是路径如 `workspaces/ttt-dlm/spec.md`，提取 `ttt-dlm`；如果是纯名称如 `ttt-dlm`，直接使用）
-   - 检查 `workspaces/<project>/state.json` 是否存在：
+1. **判断参数并解析 workspace**（如果项目已存在则跳过初始化）：
+   - 解析出完整 workspace 路径（裸项目名按 `config.yaml` 的 `workspaces_dir` 定位）：
+     ```bash
+     WORKSPACE_PATH=$(cd "$SIBYL_ROOT" && .venv/bin/python3 -c "from sibyl.orchestrate import resolve_workspace_root; print(resolve_workspace_root('$ARGUMENTS'))")
+     ```
+   - 检查项目是否已初始化（`$WORKSPACE_PATH/status.json` 存在）：
      - **已存在**：跳过初始化，直接进入步骤 2
      - **不存在 + 参数是 .md 路径**：
        ```bash
@@ -60,7 +63,7 @@ cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_list_p
        ```
    - 如果项目存在遗留 paused 标记或已被手动 stop，自动 resume：
      ```bash
-     cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_resume; cli_resume('workspaces/PROJECT')"
+     cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_resume; cli_resume('$WORKSPACE_PATH')"
      ```
 
 1.5. **创建当前步骤 Task**（仅追踪本次单步执行）：
@@ -71,7 +74,7 @@ cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_list_p
 
 2. **单步获取下一个 action**：
 ```bash
-cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_next; cli_next('workspaces/PROJECT')"
+cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_next; cli_next('$WORKSPACE_PATH')"
 ```
 
 3. **显示 action 详情**，格式：
@@ -89,7 +92,7 @@ cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_next; 
 
    动态渲染编排循环定义获取 action dispatch 规则：
    ```bash
-   cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import render_control_plane_prompt; print(render_control_plane_prompt('loop', workspace_path='workspaces/PROJECT'))"
+   cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import render_control_plane_prompt; print(render_control_plane_prompt('loop', workspace_path='$WORKSPACE_PATH'))"
    ```
 
    按渲染出来的 control-plane protocol 中对应 action_type 的规则执行该 action。
@@ -97,7 +100,7 @@ cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_next; 
 
 5. **记录结果**：
 ```bash
-cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_record; cli_record('workspaces/PROJECT', 'STAGE')"
+cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_record; cli_record('$WORKSPACE_PATH', 'STAGE')"
 ```
 记录 `cli_record` 返回的 JSON；如果包含 `sync_requested: true`，表示需要启动后台飞书同步。
 

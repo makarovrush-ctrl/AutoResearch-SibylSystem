@@ -15,6 +15,9 @@ argument-hint: "<project>"
 
 执行步骤：
 
-1. 确定 workspace 路径：`workspaces/$ARGUMENTS`
-2. 调用 `/sibyl-lark-sync` skill，传入 workspace 路径
+1. 确定 workspace 路径（由 Python 统一解析，裸项目名按 `config.yaml` 的 `workspaces_dir` 定位）：
+```bash
+cd "$SIBYL_ROOT" && .venv/bin/python3 -c "from sibyl.orchestrate import resolve_workspace_root; print(resolve_workspace_root('$ARGUMENTS'))"
+```
+2. 调用 `/sibyl-lark-sync` skill，传入上一步解析出的 workspace 路径
 3. 报告同步结果（成功/失败项、飞书链接）

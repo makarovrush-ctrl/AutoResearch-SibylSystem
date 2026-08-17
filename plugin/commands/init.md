@@ -27,7 +27,11 @@ argument-hint: "[topic]"
 ```bash
 cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_init_spec; cli_init_spec('PROJECT_NAME')"
 ```
-4. 将收集的信息写入 `workspaces/PROJECT_NAME/spec.md`
+4. 解析 PROJECT_NAME 的完整 workspace 路径并写入 `spec.md`：
+```bash
+cd "$SIBYL_ROOT" && .venv/bin/python3 -c "from sibyl.orchestrate import resolve_workspace_root; print(resolve_workspace_root('PROJECT_NAME'))"
+```
+将收集的信息写入解析出的路径下的 `spec.md`
 5. **直接向用户展示引导信息**：解析 JSON 输出中的 `guide` 字段（字符串），将其**原样作为你的文本回复输出给用户**。不要依赖 Bash 输出展示，因为长输出会被 Claude Code 折叠。示例：
    ```
    result = json.loads(bash_output)

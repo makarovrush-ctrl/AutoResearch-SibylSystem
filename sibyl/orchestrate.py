@@ -129,6 +129,17 @@ class FarsOrchestrator:
 
     def __init__(self, workspace_path: str, config: Config | None = None):
         ws_path = resolve_workspace_root(Path(workspace_path).expanduser())
+        # A non-existent workspace must be an explicit error, not an implicit
+        # create. Workspace.__init__ calls _init_dirs() which would otherwise
+        # silently scaffold a brand-new empty project and report stage "init",
+        # masking a typo'd name or a stale path.
+        if not ws_path.is_dir() or not (ws_path / "status.json").exists():
+            raise FileNotFoundError(
+                f"Workspace not found: {ws_path}. It must exist and contain "
+                "status.json. Create one with /sibyl-research:init (or :start), "
+                "or check that the project name matches a directory under the "
+                "configured workspaces_dir."
+            )
         if config is not None:
             self.config = config
         else:
@@ -215,6 +226,16 @@ class FarsOrchestrator:
         elif stage == "writing_critique":
             stage = "writing_integrate"
             self.ws.update_stage("writing_integrate")
+
+        # Refuse to dispatch literature search on an empty topic: it would send
+        # sibyl-literature out with nothing to search for and silently produce
+        # junk results. topic.txt is written by init_project / init_from_spec;
+        # its absence here means the workspace was never properly initialised.
+        if stage == "literature_search" and not (topic or "").strip():
+            raise ValueError(
+                "Workspace has no research topic (topic.txt is empty or missing). "
+                "Set one with /sibyl-research:init or write topic.txt before continuing."
+            )
 
         if stage == "init":
             # init is a transient stage; the real research work starts at
@@ -529,6 +550,7 @@ migrate_workspace = _migration_cli.migrate_workspace
 cli_migrate = _migration_cli.cli_migrate
 cli_migrate_all = _migration_cli.cli_migrate_all
 cli_migrate_server = _migration_cli.cli_migrate_server
+cli_backfill_topics = _migration_cli.cli_backfill_topics
 
 
 # ══════════════════════════════════════════════

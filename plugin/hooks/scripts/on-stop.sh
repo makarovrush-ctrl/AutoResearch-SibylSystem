@@ -8,8 +8,12 @@ set -uo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 . "$SCRIPT_DIR/lib/sibyl-hook-utils.sh"
 
-WORKSPACES_DIR="$SIBYL_ROOT/workspaces"
-[ -d "$WORKSPACES_DIR" ] || exit 0
+# Find workspaces directory (authoritative source: config.yaml workspaces_dir)
+WORKSPACES_DIR=$(sibyl_workspaces_dir)
+if [ -z "$WORKSPACES_DIR" ] || [ ! -d "$WORKSPACES_DIR" ]; then
+    echo "[SIBYL-SESSION-HOOK] warning: workspaces_dir not found: '$WORKSPACES_DIR' (check workspaces_dir in config.yaml)" >&2
+    exit 0
+fi
 
 for ws_dir in "$WORKSPACES_DIR"/*/; do
     [ -d "$ws_dir" ] || continue

@@ -15,12 +15,9 @@ argument-hint: "<project_or_workspace>"
 
 ## 步骤
 
-0. **规范化目标 workspace**：
+0. **规范化目标 workspace**（由 Python 统一解析：裸项目名按 `config.yaml` 的 `workspaces_dir` 定位，完整路径原样保留）：
 ```bash
-TARGET_WORKSPACE="$ARGUMENTS"
-if [[ "$TARGET_WORKSPACE" != */* && "$TARGET_WORKSPACE" != .* ]]; then
-  TARGET_WORKSPACE="workspaces/$TARGET_WORKSPACE"
-fi
+TARGET_WORKSPACE=$(cd "$SIBYL_ROOT" && .venv/bin/python3 -c "from sibyl.orchestrate import resolve_workspace_root; print(resolve_workspace_root('$ARGUMENTS'))")
 ```
 
 1. 写入手动停止标记：

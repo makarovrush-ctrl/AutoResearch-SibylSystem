@@ -8,9 +8,56 @@ import re
 from pathlib import Path
 
 
+def _is_bare_workspace_name(p: Path) -> bool:
+    """True for a single-component name with no path separator and no leading dot."""
+    s = str(p)
+    if p.is_absolute():
+        return False
+    if s in ("", ".", ".."):
+        return False
+    if "/" in s or "\\" in s:
+        return False
+    if s.startswith("."):
+        return False
+    return True
+
+
+def _configured_workspaces_dir() -> Path:
+    """Read ``workspaces_dir`` from the root ``config.yaml``.
+
+    Falls back to the dataclass default, resolved against the repo root when
+    relative, so a bare project name always lands in the configured directory
+    rather than a shadow ``<cwd>/workspaces``.
+    """
+    from sibyl._paths import REPO_ROOT
+    from sibyl.config import Config
+
+    root_cfg = REPO_ROOT / "config.yaml"
+    ws_dir: Path | None = None
+    if root_cfg.exists():
+        try:
+            ws_dir = Config.from_yaml(str(root_cfg)).workspaces_dir
+        except Exception:
+            ws_dir = None
+    if ws_dir is None:
+        ws_dir = Config().workspaces_dir
+    if not ws_dir.is_absolute():
+        ws_dir = (REPO_ROOT / ws_dir).resolve()
+    return ws_dir
+
+
 def resolve_workspace_root(workspace_path: str | Path) -> Path:
-    """Normalize a workspace path to the stable project root."""
+    """Normalize a workspace name or path to the stable project root.
+
+    A bare name (single component, no separator, no leading dot) is resolved
+    against ``Config.workspaces_dir``. Anything with a path separator or an
+    absolute path is treated as a literal path. This keeps ``/sibyl-research:continue
+    centriflow`` operating on the real project instead of silently creating a
+    shadow ``<cwd>/centriflow``.
+    """
     workspace_root = Path(workspace_path)
+    if _is_bare_workspace_name(workspace_root):
+        workspace_root = _configured_workspaces_dir() / workspace_root.name
     if workspace_root.name == "current" and (workspace_root.parent / "status.json").exists():
         workspace_root = workspace_root.parent
     return workspace_root.resolve()

@@ -53,6 +53,22 @@ def infer_topic_for_workspace(ws: Workspace) -> str:
     if topic:
         return topic.strip()
 
+    # Workspace CLAUDE.md is written at scaffold time and records the project
+    # title/description, so it is a better fallback than a slug-derived name.
+    claude_md = ws.root / "CLAUDE.md"
+    if claude_md.exists():
+        try:
+            text = claude_md.read_text(encoding="utf-8")
+            # Prefer the one-line "## Project" summary over the "# Title".
+            proj = re.search(r"^##\s*Project\s*\n+\s*(.+?)(?:\n|$)", text, re.MULTILINE)
+            if proj and proj.group(1).strip():
+                return proj.group(1).strip()
+            title = re.search(r"^#\s+([^#].*)", text, re.MULTILINE)
+            if title and title.group(1).strip():
+                return title.group(1).strip()
+        except OSError:
+            pass
+
     return ws.name.replace("-", " ").title()
 
 
@@ -518,6 +534,39 @@ def cli_migrate_all(
             for result in results
         ],
     }, indent=2, ensure_ascii=False))
+
+
+def cli_backfill_topics(
+    *,
+    workspaces_dir: str | None = None,
+    dry_run: bool = False,
+) -> None:
+    """Write ``topic.txt`` for any workspace that is missing it.
+
+    Infers the topic from spec.md / idea/proposal.md / workspace CLAUDE.md, so a
+    workspace that never went through ``/sibyl-research:init`` can still start
+    ``literature_search`` instead of dispatching on an empty topic.
+    """
+    cfg = load_effective_config()
+    ws_dir = Path(workspaces_dir).expanduser() if workspaces_dir else cfg.workspaces_dir
+    ws_dir = ws_dir.resolve()
+    if not ws_dir.exists():
+        print(json.dumps({"error": f"Workspaces dir not found: {ws_dir}"}))
+        return
+
+    results = []
+    for project_dir in sorted(ws_dir.iterdir()):
+        if not project_dir.is_dir() or not (project_dir / "status.json").exists():
+            continue
+        if (project_dir / "topic.txt").exists():
+            continue
+        ws = Workspace.open_existing(project_dir.parent, project_dir.name)
+        topic = infer_topic_for_workspace(ws).strip() or project_dir.name.replace("-", " ").title()
+        if not dry_run:
+            ws.write_file("topic.txt", topic)
+        results.append({"project_name": project_dir.name, "topic": topic})
+
+    print(json.dumps({"backfilled": results}, indent=2, ensure_ascii=False))
 
 
 def cli_migrate_server(project_name: str, ssh_connection: str = "default") -> None:

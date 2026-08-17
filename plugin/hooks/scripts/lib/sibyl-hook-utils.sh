@@ -7,6 +7,30 @@ _HOOK_LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SIBYL_ROOT="$(cd "$_HOOK_LIB_DIR/../../../.." && pwd)"
 SIBYL_PYTHON="$SIBYL_ROOT/.venv/bin/python3"
 
+# Resolve the configured workspaces directory from the root config.yaml.
+# Falls back to $SIBYL_ROOT/workspaces; echoes an empty string on failure.
+sibyl_workspaces_dir() {
+    local out
+    out=$("$SIBYL_PYTHON" -c '
+import sys, yaml
+from pathlib import Path
+root = Path(sys.argv[1])
+cfg_path = root / "config.yaml"
+raw = "workspaces"
+if cfg_path.exists():
+    try:
+        cfg = yaml.safe_load(cfg_path.read_text(encoding="utf-8")) or {}
+        raw = str(cfg.get("workspaces_dir", "workspaces"))
+    except Exception:
+        pass
+p = Path(raw).expanduser()
+if not p.is_absolute():
+    p = (root / p).resolve()
+print(p)
+' "$SIBYL_ROOT" 2>/dev/null) || true
+    [ -n "$out" ] && printf '%s\n' "$out"
+}
+
 # Compute workspace scope ID (must match Python workspace_scope_id())
 sibyl_scope_id() {
     local workspace="$1"

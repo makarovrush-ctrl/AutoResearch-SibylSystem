@@ -3569,3 +3569,76 @@ class TestResetExperimentRuntimeClearsState:
         o._reset_experiment_runtime_state()
         fresh = load_experiment_state(o.ws.active_root)
         assert fresh.tasks == {}
+
+
+class TestWorkspaceResolution:
+    """A bare project name must resolve under workspaces_dir, not silently
+    scaffold a shadow ``<cwd>/<name>`` (the P0-1 regression)."""
+
+    def test_bare_name_resolves_under_workspaces_dir(self, tmp_path, monkeypatch):
+        import sibyl.orchestration.workspace_paths as wp
+        from sibyl.orchestration.workspace_paths import resolve_workspace_root
+        monkeypatch.setattr(wp, "_configured_workspaces_dir", lambda: tmp_path)
+        assert resolve_workspace_root("my-proj") == tmp_path / "my-proj"
+
+    def test_full_path_is_preserved(self, tmp_path):
+        from sibyl.orchestration.workspace_paths import resolve_workspace_root
+        real = tmp_path / "real-proj"
+        real.mkdir()
+        assert resolve_workspace_root(str(real)) == real.resolve()
+
+    def test_unknown_workspace_raises_instead_of_creating(self, tmp_path, monkeypatch):
+        import sibyl.orchestration.workspace_paths as wp
+        monkeypatch.setattr(wp, "_configured_workspaces_dir", lambda: tmp_path)
+        with pytest.raises(FileNotFoundError):
+            FarsOrchestrator("missing-proj")
+
+
+class TestTopicGuard:
+    """literature_search must refuse an empty topic instead of dispatching
+    sibyl-literature with nothing to search for."""
+
+    def test_empty_topic_raises_at_literature_search(self, tmp_path):
+        ws = Workspace(tmp_path, "no-topic")
+        ws.update_stage("literature_search")
+        with pytest.raises(ValueError, match="topic"):
+            FarsOrchestrator(str(tmp_path / "no-topic")).get_next_action()
+
+    def test_topic_backfill_reads_workspace_claude_md(self, tmp_path):
+        from sibyl.orchestration.migration_cli import infer_topic_for_workspace
+        ws = Workspace(tmp_path, "proj")
+        (ws.root / "CLAUDE.md").write_text(
+            "# Proj Title\n\n## Project\nReal research topic here.\n", encoding="utf-8"
+        )
+        assert infer_topic_for_workspace(ws) == "Real research topic here."
+
+
+class TestModelRouting:
+    """action["model"] must report the frontmatter model the skill actually runs
+    on, not a hardcoded default that can disagree with the active provider."""
+
+    def test_active_agent_models_reads_frontmatter(self, tmp_path):
+        from sibyl.orchestration.agent_helpers import active_agent_models
+        (tmp_path / "sibyl-heavy.md").write_text("---\nmodel: claude-opus-5\n---\n", encoding="utf-8")
+        (tmp_path / "sibyl-standard.md").write_text("---\nmodel: claude-sonnet-5\n---\n", encoding="utf-8")
+        (tmp_path / "sibyl-light.md").write_text("---\nmodel: claude-sonnet-5\n---\n", encoding="utf-8")
+        assert active_agent_models(tmp_path) == {
+            "heavy": "claude-opus-5",
+            "standard": "claude-sonnet-5",
+            "light": "claude-sonnet-5",
+        }
+
+    def test_resolve_model_tier_prefers_frontmatter(self, monkeypatch):
+        from sibyl.orchestration import agent_helpers
+        monkeypatch.setattr(
+            agent_helpers,
+            "active_agent_models",
+            lambda agents_dir=None: {
+                "heavy": "claude-opus-5",
+                "standard": "claude-sonnet-5",
+                "light": "claude-sonnet-5",
+            },
+        )
+        tier, model = agent_helpers.resolve_model_tier(Config(), "synthesizer")
+        assert tier == "heavy"
+        assert model == "claude-opus-5"  # frontmatter wins over the deepseek default

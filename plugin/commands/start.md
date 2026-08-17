@@ -17,7 +17,7 @@ argument-hint: "<spec_path_or_topic>"
 
 ## 输入方式
 
-- Markdown 路径: `workspaces/project/spec.md`
+- Markdown 路径: `<workspaces_dir>/project/spec.md`（`workspaces_dir` 见 `config.yaml`）
 - 纯文本 topic（兼容旧用法）
 
 参数: `$ARGUMENTS`

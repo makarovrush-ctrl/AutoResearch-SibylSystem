@@ -14,9 +14,13 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 INPUT=$(sibyl_read_hook_input)
 CWD=$(echo "$INPUT" | jq -r '.cwd // ""' 2>/dev/null)
 
-# Find workspaces directory
-WORKSPACES_DIR="$SIBYL_ROOT/workspaces"
-[ -d "$WORKSPACES_DIR" ] || exit 0
+# Find workspaces directory (authoritative source: config.yaml workspaces_dir)
+WORKSPACES_DIR=$(sibyl_workspaces_dir)
+if [ -z "$WORKSPACES_DIR" ] || [ ! -d "$WORKSPACES_DIR" ]; then
+    printf '{"systemMessage":"[SIBYL-SESSION-HOOK] warning: workspaces_dir not found: %s (check workspaces_dir in config.yaml)"}\n' \
+        "$(printf '%s' "$WORKSPACES_DIR" | sed 's/"/\\"/g')"
+    exit 0
+fi
 
 RECOVERY_NOTES=""
 
