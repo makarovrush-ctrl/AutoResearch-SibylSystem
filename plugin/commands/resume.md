@@ -74,7 +74,6 @@ cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_status
 5. **启动 Sentinel 看门狗**（在 tmux 的 sibling pane 中）：
    ```bash
    if [ -n "${TMUX:-}" ] && [ -n "${CURRENT_PANE:-}" ]; then
-     SIBYL_ROOT="$(cd /Users/cwan0785/sibyl-system && pwd)"
      tmux split-window -h -l 60 \
        "bash $SIBYL_ROOT/sibyl/sentinel.sh $TARGET_WORKSPACE $CURRENT_PANE 120"
      tmux select-pane -t "$CURRENT_PANE"
