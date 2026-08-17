@@ -34,6 +34,15 @@
           }
         ],
         "description": "Initialize self-heal monitor and recover pending background processes"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/on-session-start-shortcut.sh\""
+          }
+        ],
+        "description": "Auto-create the conversation resume shortcut (CLAUDE.md Step Zero) so it can never be forgotten"
       }
     ],
     "Stop": [
@@ -45,6 +54,15 @@
           }
         ],
         "description": "Clean up daemon PIDs for stopped/done projects"
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/scripts/on-stop-shortcut.sh\""
+          }
+        ],
+        "description": "Retitle the auto-created shortcut from the transcript and write the Readable/*.md summary"
       }
     ]
   }
