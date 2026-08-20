@@ -193,7 +193,9 @@ while IFS=$'\t' read -r name path stage prompt_file; do
     tmux send-keys -t "$SESSION_NAME:$win" "$CMD" Enter
 
     # Sentinel watchdog in the right-hand sibling pane, watching the main pane.
-    tmux split-window -t "$SESSION_NAME:$win.0" -h -l 60 \
+    # Keep it NARROW (24 cols): it's a background log, not where the research
+    # happens. The conversation pane gets all the remaining width.
+    tmux split-window -t "$SESSION_NAME:$win.0" -h -l 24 \
         "bash $REPO_ROOT/sibyl/sentinel.sh $path $SESSION_NAME:$win.0 120"
 
     # Return keyboard focus to the Claude pane. split-window leaves the new
