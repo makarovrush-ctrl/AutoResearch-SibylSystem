@@ -196,12 +196,22 @@ while IFS=$'\t' read -r name path stage prompt_file; do
     tmux split-window -t "$SESSION_NAME:$win.0" -h -l 60 \
         "bash $REPO_ROOT/sibyl/sentinel.sh $path $SESSION_NAME:$win.0 120"
 
+    # Return keyboard focus to the Claude pane. split-window leaves the new
+    # Sentinel pane active, so without this the user's keystrokes go to the
+    # watchdog and they can't answer Claude's one-time prompts (or type at all).
+    tmux select-pane -t "$SESSION_NAME:$win.0"
+
     echo "  ✅ $name  (window $win, stage: $stage)  + sentinel"
     win=$((win + 1))
 done <<< "$PROJECTS"
 
 echo ""
 echo "  🚀  All projects launched in tmux session '$SESSION_NAME'."
+
+# Land on the first project's Claude pane (not a Sentinel pane), so the user
+# opens straight onto a project they can actually read and interact with.
+tmux select-window -t "$SESSION_NAME:0"
+tmux select-pane -t "$SESSION_NAME:0.0"
 
 # When launched from a double-clicked .command (outside tmux), drop straight
 # into the session so the panes are visible immediately. Inside an existing
