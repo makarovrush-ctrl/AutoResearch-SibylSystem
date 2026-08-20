@@ -77,7 +77,7 @@ echo "      ($ORIGIN)"
 echo ""
 
 if [ -n "${SIBYL_DRY_RUN:-}" ]; then
-    echo "[dry-run] claude --plugin-dir $REPO_ROOT/plugin --resume $SESSION_ID --model $SIBYL_CLI_MODEL --settings $SIBYL_SETTINGS"
+    echo "[dry-run] claude --plugin-dir $REPO_ROOT/plugin --dangerously-skip-permissions --resume $SESSION_ID --model $SIBYL_CLI_MODEL --settings $SIBYL_SETTINGS"
     exit 0
 fi
 
@@ -85,5 +85,6 @@ fi
 # resumed session without it loses every /sibyl-research:* command and hook.
 exec "$HOME/.local/bin/claude" \
     --plugin-dir "$REPO_ROOT/plugin" \
+    --dangerously-skip-permissions \
     --resume "$SESSION_ID" \
     --model "$SIBYL_CLI_MODEL" --settings "$SIBYL_SETTINGS" "$PROMPT"

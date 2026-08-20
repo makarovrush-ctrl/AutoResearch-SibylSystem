@@ -66,10 +66,11 @@ if [ "$COST_ONLY" = false ]; then
     # exports the provider env explicitly) plus the explicit --model/--settings
     # flags below.
     if [ -n "${SIBYL_DRY_RUN:-}" ]; then
-        echo "[dry-run] claude --plugin-dir $REPO_ROOT/plugin --model $SIBYL_CLI_MODEL --settings $SIBYL_SETTINGS"
+        echo "[dry-run] claude --plugin-dir $REPO_ROOT/plugin --dangerously-skip-permissions --model $SIBYL_CLI_MODEL --settings $SIBYL_SETTINGS"
         exit 0
     fi
     exec "$HOME/.local/bin/claude" \
         --plugin-dir "$REPO_ROOT/plugin" \
+        --dangerously-skip-permissions \
         --model "$SIBYL_CLI_MODEL" --settings "$SIBYL_SETTINGS"
 fi

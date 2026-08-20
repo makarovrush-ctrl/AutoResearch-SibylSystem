@@ -154,17 +154,21 @@ if [ "$DRY_RUN" = 1 ]; then
         [ -n "$name" ] || continue
         echo "  • $name (stage: $stage)"
         echo "      prompt: $prompt_file"
-        echo "      cmd: cd $REPO_ROOT && $CLAUDE_BIN --plugin-dir $REPO_ROOT/plugin --model $SIBYL_CLI_MODEL --settings $SIBYL_SETTINGS \"\$(cat $prompt_file)\""
+        echo "      cmd: cd $REPO_ROOT && $CLAUDE_BIN --plugin-dir $REPO_ROOT/plugin --dangerously-skip-permissions --model $SIBYL_CLI_MODEL --settings $SIBYL_SETTINGS \"\$(cat $prompt_file)\""
         echo "      sentinel: bash $REPO_ROOT/sibyl/sentinel.sh $path <pane> 120"
     done <<< "$PROJECTS"
     exit 0
 fi
 
 if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
-    echo "  ⚠️  tmux session '$SESSION_NAME' already exists — not starting duplicates."
-    echo "      attach:  tmux attach -t $SESSION_NAME"
-    echo "      restart: tmux kill-session -t $SESSION_NAME && bash $0 --model $MODEL"
-    exit 1
+    echo "  ℹ️  tmux session '$SESSION_NAME' already running — attaching to it."
+    echo "      (restart from scratch: tmux kill-session -t $SESSION_NAME && bash $0 --model $MODEL)"
+    if [ -z "${TMUX:-}" ]; then
+        exec tmux attach -t "$SESSION_NAME"
+    else
+        echo "      (already inside tmux) switch: tmux switch-client -t $SESSION_NAME"
+        exit 0
+    fi
 fi
 
 # ── Spawn one window per project (main pane + sentinel pane) ──
@@ -181,7 +185,11 @@ while IFS=$'\t' read -r name path stage prompt_file; do
     # Type the launch command into the pane's interactive shell. claude stays a
     # DIRECT child of the pane shell (no `exec`), which is what sentinel.sh's
     # claude_is_running() expects (pgrep -P <pane_pid> -f claude).
-    CMD="cd $REPO_ROOT && $CLAUDE_BIN --plugin-dir $REPO_ROOT/plugin --model $SIBYL_CLI_MODEL --settings $SIBYL_SETTINGS \"\$(cat $prompt_file)\""
+    # --dangerously-skip-permissions is NOT optional: the control plane loops
+    # through cli_next → tool calls → cli_record hundreds of times per stage, and
+    # without it every pane sits at a "proceed? Yes/No" prompt instead of running
+    # autonomously. This is the flag the README mandates for end-to-end autoresearch.
+    CMD="cd $REPO_ROOT && $CLAUDE_BIN --plugin-dir $REPO_ROOT/plugin --dangerously-skip-permissions --model $SIBYL_CLI_MODEL --settings $SIBYL_SETTINGS \"\$(cat $prompt_file)\""
     tmux send-keys -t "$SESSION_NAME:$win" "$CMD" Enter
 
     # Sentinel watchdog in the right-hand sibling pane, watching the main pane.
