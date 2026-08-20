@@ -148,10 +148,16 @@ restart_claude() {
 
     if [[ -n "$session_id" ]]; then
         log "  Resuming session: ${session_id:0:12}..."
-        tmux send-keys -t "$TMUX_PANE" "cd $SIBYL_ROOT && claude --resume $session_id" Enter
+        # Route through sibyl-resume.sh, NOT bare `claude --resume`: it passes
+        # --plugin-dir (so /sibyl-research:* survives the revive) and pins the
+        # model back to what the transcript recorded, so a DeepSeek project
+        # doesn't silently come back on Anthropic (or vice versa).
+        tmux send-keys -t "$TMUX_PANE" "cd $SIBYL_ROOT && bash scripts/sibyl-resume.sh $session_id" Enter
     else
-        log "  No session ID, using --continue"
-        tmux send-keys -t "$TMUX_PANE" "cd $SIBYL_ROOT && claude --continue" Enter
+        log "  No session ID, starting fresh (anthropic quality default)"
+        # sibyl-launch.sh passes --plugin-dir + --model + --settings, so the
+        # injected /sibyl-research:continue below still works.
+        tmux send-keys -t "$TMUX_PANE" "cd $SIBYL_ROOT && bash scripts/sibyl-launch.sh --model anthropic" Enter
     fi
 
     # Wait for Claude to start (up to 90 seconds)

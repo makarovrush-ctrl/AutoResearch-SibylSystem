@@ -47,7 +47,7 @@ cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_status
    fi
    ```
 
-3. **恢复中断前的后台 hook / agent，再启动 Ralph Loop**：
+3. **恢复中断前的后台 hook / agent，再启动持续迭代循环**：
 
    - 优先读取 `RESUME_JSON.recovery`；如果 shell 变量丢失，可重新运行 `cli_status` 并读取 `status.recovery`。
    - 如果 `RESUME_JSON` 里的 `pending_sync_count > 0`，立刻用 Agent tool 以 `run_in_background=true`
@@ -55,21 +55,17 @@ cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_status
    - 如果 `RESUME_JSON.background_agent_required == true`，读取
      `RESUME_JSON.resume_action.experiment_monitor.background_agent`，按其中的 `name` 和 `args`
      原样用 Agent tool 以 `run_in_background=true` 重启后台 experiment supervisor。不要等待完成。
-   - 以上恢复动作只做一次；完成后继续进入 Ralph Loop。
+   - 以上恢复动作只做一次；完成后继续进入持续迭代循环。
 
-4. **生成 Ralph Loop prompt 并启动持续迭代**：
+4. **启动持续迭代循环**：
+
+   本系统内置了 control-plane 循环（`render_control_plane_prompt('loop', …)`），不需要任何外部 Ralph Loop skill。渲染并执行编排循环定义：
 
    ```bash
-   cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_write_ralph_prompt; cli_write_ralph_prompt('$TARGET_WORKSPACE', '$PROJECT_NAME')"
+   cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import render_control_plane_prompt; print(render_control_plane_prompt('loop', workspace_path='$TARGET_WORKSPACE'))"
    ```
 
-   然后使用 Skill 工具调用 `ralph-loop:ralph-loop`，prompt 使用**单行 shell-safe 文本**：
-   ```
-   按照 $TARGET_WORKSPACE/.claude/ralph-prompt.txt 中的指令持续迭代西比拉研究项目 $PROJECT_NAME，工作目录 $TARGET_WORKSPACE，按编排循环章节执行每轮操作
-   ```
-   参数: `--max-iterations 30 --completion-promise 'SIBYL_PIPELINE_COMPLETE'`
-
-   如果 Ralph Loop 不可用（插件错误），则手动执行编排循环。
+   读取输出内容获取运行时 control-plane protocol，然后按其中的 LOOP 流程执行（`cli_next` → 执行 action → `cli_record` → 重复，直到 `done`）。
 
 5. **启动 Sentinel 看门狗**（在 tmux 的 sibling pane 中）：
    ```bash

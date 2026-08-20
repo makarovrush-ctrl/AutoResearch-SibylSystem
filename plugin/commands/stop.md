@@ -1,11 +1,11 @@
 ---
-description: "停止研究项目并关闭 Ralph Loop 循环"
+description: "停止研究项目并退出持续迭代循环"
 argument-hint: "<project_or_workspace>"
 ---
 
 # /sibyl-research:stop
 
-停止研究项目并关闭 Ralph Loop 持续迭代循环。
+停止研究项目并退出持续迭代循环。
 
 **所有用户可见的输出遵循项目语言配置（`action.language` / `config.language`）；论文正文与 LaTeX 始终使用英文。默认配置为中文。**
 
@@ -35,7 +35,7 @@ echo '{"stop": true}' > "$TARGET_WORKSPACE/sentinel_stop.json"
 cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_sentinel_session; cli_sentinel_session('$TARGET_WORKSPACE', '', '')"
 ```
 
-2. 取消 Ralph Loop（关闭 stop hook 循环）：
-   使用 Skill 工具调用 `ralph-loop:cancel-ralph`
+2. 停止持续迭代循环：
+   内置 control-plane 循环无需取消任何外部 skill。步骤 1.5 写入的 `sentinel_stop.json` 已让 Sentinel 看门狗退出，`cli_pause(..., 'user_stop')` 已写入手动停机标记。无需其他操作。
 
 3. 输出确认信息：告知用户项目已停止，可用 `/sibyl-research:resume <project>` 恢复。

@@ -1,11 +1,11 @@
 ---
-description: "Debug 模式：单步执行编排循环，不启动 Ralph Loop"
+description: "Debug 模式：单步执行编排循环，不进入持续迭代"
 argument-hint: "<spec_path_or_project_name>"
 ---
 
 # /sibyl-research:debug
 
-Debug 模式：单步执行编排循环，不启动 Ralph Loop，方便调试和修复问题。
+Debug 模式：单步执行编排循环，不进入持续迭代，方便调试和修复问题。
 
 **所有用户可见的输出遵循项目语言配置（`action.language` / `config.language`）；论文正文与 LaTeX 始终使用英文。默认配置为中文。**
 
@@ -17,7 +17,7 @@ Debug 模式：单步执行编排循环，不启动 Ralph Loop，方便调试和
 
 ## 与 /sibyl-start 的区别
 
-- 不启动 Ralph Loop 循环
+- 不进入持续迭代循环
 - 每次只执行一个 action，然后停下来等待用户确认
 - 出错时直接停下来，方便排查和修复
 - 可反复执行 `/sibyl-debug` 继续下一步

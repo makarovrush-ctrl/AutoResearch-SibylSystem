@@ -69,19 +69,15 @@ cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_init; 
    fi
    ```
 
-3. **生成 Ralph Loop prompt 并启动持续迭代**：
+3. **启动持续迭代循环**：
+
+   本系统内置了 control-plane 循环（`render_control_plane_prompt('loop', …)`），不需要任何外部 Ralph Loop skill。渲染并执行编排循环定义：
 
    ```bash
-   cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import cli_write_ralph_prompt; cli_write_ralph_prompt('WORKSPACE_PATH', 'PROJECT_NAME')"
+   cd $SIBYL_ROOT && .venv/bin/python3 -c "from sibyl.orchestrate import render_control_plane_prompt; print(render_control_plane_prompt('loop', workspace_path='WORKSPACE_PATH'))"
    ```
 
-   然后使用 Skill 工具调用 `ralph-loop:ralph-loop`，prompt 使用**单行 shell-safe 文本**：
-   ```
-   按照 WORKSPACE_PATH/.claude/ralph-prompt.txt 中的指令持续迭代西比拉研究项目 PROJECT_NAME，工作目录 WORKSPACE_PATH，按编排循环章节执行每轮操作
-   ```
-   参数: `--max-iterations 30 --completion-promise 'SIBYL_PIPELINE_COMPLETE'`
-
-   如果 Ralph Loop 不可用（插件错误），则手动执行编排循环。
+   读取输出内容获取运行时 control-plane protocol，然后按其中的 LOOP 流程执行（`cli_next` → 执行 action → `cli_record` → 重复，直到 `done`）。
 
 4. **启动 Sentinel 看门狗**（在 tmux 的 sibling pane 中，确保实验轮询不中断）：
    ```bash
