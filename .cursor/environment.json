@@ -1,0 +1,7 @@
+{
+  "name": "玄学研究 · 紫微斗数",
+  "install": "bash scripts/install.sh",
+  "repositoryDependencies": [
+    "github.com/Renhuai123/ziwei-doushu"
+  ]
+}
