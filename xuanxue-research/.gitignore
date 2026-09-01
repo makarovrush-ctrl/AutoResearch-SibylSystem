@@ -1,5 +1,0 @@
-vendor/
-node_modules/
-charts/*.json
-.env
-.env.local
