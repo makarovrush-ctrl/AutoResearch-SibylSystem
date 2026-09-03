@@ -1,6 +1,7 @@
 {
   "mcpServers": {
     "comsol": {
+      "type": "stdio",
       "command": "C:\\Windows\\System32\\cmd.exe",
       "args": [
         "/c",
@@ -8,7 +9,8 @@
       ],
       "env": {
         "COMSOL_ROOT": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1",
-        "COMSOLROOT": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1"
+        "COMSOLROOT": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1",
+        "COMSOL_MCP_HOME": "${workspaceFolder}/repositories/COMSOL_Multiphysics_MCP"
       }
     }
   }

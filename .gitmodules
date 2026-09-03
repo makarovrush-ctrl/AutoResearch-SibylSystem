@@ -1,0 +1,3 @@
+[submodule "repositories/COMSOL_Multiphysics_MCP"]
+	path = repositories/COMSOL_Multiphysics_MCP
+	url = https://github.com/wjc9011/COMSOL_Multiphysics_MCP.git

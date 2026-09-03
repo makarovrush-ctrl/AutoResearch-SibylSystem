@@ -403,6 +403,8 @@ That install lives in `Multiphysics_copy1`, not the default `Multiphysics` folde
 
 Open this repo in **Cursor Desktop on that Windows PC**, enable the project `comsol` MCP, and wait for the first-run install. A Cursor Cloud Linux VM cannot execute `comsol.exe`.
 
+The upstream server is vendored as a git submodule at `repositories/COMSOL_Multiphysics_MCP`. After clone run `git submodule update --init repositories/COMSOL_Multiphysics_MCP`. `.cursor/mcp.json` registers it as a project (`stdio`) MCP so it shows under repository MCP servers.
+
 ### Install
 
 ```bash

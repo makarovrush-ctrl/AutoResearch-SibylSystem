@@ -20,7 +20,17 @@ REPO_URL = "https://github.com/wjc9011/COMSOL_Multiphysics_MCP.git"
 WIN_ROOT_DEFAULT = r"C:\Program Files\COMSOL\COMSOL62\Multiphysics_copy1"
 
 
+def _bundled_home() -> Path:
+    return Path(__file__).resolve().parent.parent / "repositories" / "COMSOL_Multiphysics_MCP"
+
+
 def _home() -> Path:
+    env_home = os.environ.get("COMSOL_MCP_HOME")
+    if env_home:
+        return Path(env_home)
+    bundled = _bundled_home()
+    if (bundled / "src" / "server.py").is_file():
+        return bundled
     if os.name == "nt":
         base = os.environ.get("LOCALAPPDATA") or str(Path.home() / "AppData" / "Local")
         return Path(base) / "mcp-servers" / "COMSOL_Multiphysics_MCP"
@@ -109,7 +119,8 @@ def _server_importable(py: Path, home: Path) -> bool:
 
 def ensure_install(home: Path) -> Path:
     home.mkdir(parents=True, exist_ok=True)
-    if not (home / ".git").is_dir():
+    has_src = (home / "src" / "server.py").is_file()
+    if not has_src and not (home / ".git").is_dir():
         _run(["git", "clone", "--depth", "1", REPO_URL, str(home)])
     py = _venv_python(home)
     if _server_importable(py, home):
@@ -155,7 +166,8 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    if not shutil.which("git"):
+    bundled = Path(os.environ.get("COMSOL_MCP_HOME") or _home())
+    if not (bundled / "src" / "server.py").is_file() and not shutil.which("git"):
         sys.stderr.write("git is required to install COMSOL_Multiphysics_MCP\n")
         raise SystemExit(1)
     raise SystemExit(main())
