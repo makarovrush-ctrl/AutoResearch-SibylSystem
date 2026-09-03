@@ -12,6 +12,10 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=scripts/comsol-mcp-env.sh
+source "$REPO_ROOT/scripts/comsol-mcp-env.sh"
+comsol_mcp_export
+
 COMSOL_MCP_HOME="${COMSOL_MCP_HOME:-$HOME/.local/share/mcp-servers/COMSOL_Multiphysics_MCP}"
 COMSOL_MCP_REPO="${COMSOL_MCP_REPO:-https://github.com/wjc9011/COMSOL_Multiphysics_MCP.git}"
 SERVER_NAME="comsol"
@@ -53,8 +57,11 @@ merge_mcp_json() {
     local config_path="$1"
     local command="$2"
     local cwd="$3"
-    "$PY" - "$config_path" "$SERVER_NAME" "$command" "$cwd" <<'PY'
+    local comsol_root="$4"
+    local comsol_bin="$5"
+    "$PY" - "$config_path" "$SERVER_NAME" "$command" "$cwd" "$comsol_root" "$comsol_bin" <<'PY'
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -62,11 +69,20 @@ config_path = Path(sys.argv[1]).expanduser()
 server_name = sys.argv[2]
 command = sys.argv[3]
 cwd = sys.argv[4]
+comsol_root = sys.argv[5]
+comsol_bin = sys.argv[6]
+path = os.environ.get("PATH", "")
+if comsol_bin and comsol_bin not in path.split(os.pathsep):
+    path = comsol_bin + os.pathsep + path
 entry = {
     "command": command,
     "args": [],
     "cwd": cwd,
-    "env": {},
+    "env": {
+        "COMSOL_ROOT": comsol_root,
+        "COMSOLROOT": comsol_root,
+        "PATH": path,
+    },
 }
 
 data = {}
@@ -91,9 +107,14 @@ PY
 }
 
 COMMAND="$COMSOL_MCP_HOME/.venv/bin/comsol-mcp"
+COMSOL_BIN="$(comsol_mcp_bin_dir "$COMSOL_ROOT")"
 echo "Registering MCP server as '$SERVER_NAME'"
+echo "  COMSOL_ROOT=$COMSOL_ROOT"
 if command -v claude >/dev/null 2>&1; then
-    if claude mcp add --scope local "$SERVER_NAME" -- "$COMMAND"; then
+    if claude mcp add --scope local "$SERVER_NAME" \
+        -e "COMSOL_ROOT=$COMSOL_ROOT" \
+        -e "COMSOLROOT=$COMSOL_ROOT" \
+        -- "$COMMAND"; then
         echo "  registered via claude mcp add --scope local"
     else
         echo "  claude mcp add failed; writing JSON configs instead"
@@ -102,17 +123,25 @@ else
     echo "  Claude Code CLI not found — writing JSON MCP configs"
 fi
 
-merge_mcp_json "$HOME/.cursor/mcp.json" "$COMMAND" "$COMSOL_MCP_HOME"
-merge_mcp_json "$HOME/.mcp.json" "$COMMAND" "$COMSOL_MCP_HOME"
+merge_mcp_json "$HOME/.cursor/mcp.json" "$COMMAND" "$COMSOL_MCP_HOME" "$COMSOL_ROOT" "$COMSOL_BIN"
+merge_mcp_json "$HOME/.mcp.json" "$COMMAND" "$COMSOL_MCP_HOME" "$COMSOL_ROOT" "$COMSOL_BIN"
 if [ -f "$REPO_ROOT/.mcp.json" ]; then
-    merge_mcp_json "$REPO_ROOT/.mcp.json" "$COMMAND" "$COMSOL_MCP_HOME"
+    merge_mcp_json "$REPO_ROOT/.mcp.json" "$COMMAND" "$COMSOL_MCP_HOME" "$COMSOL_ROOT" "$COMSOL_BIN"
 fi
 
 echo ""
 echo "COMSOL MCP installed."
 echo "  source: $COMSOL_MCP_HOME"
 echo "  launch: $REPO_ROOT/scripts/run-comsol-mcp.sh"
+echo "  COMSOL: $COMSOL_ROOT"
 echo "  tools:  mcp__comsol__comsol_start, mcp__comsol__model_create, ..."
 echo ""
 echo "Restart Cursor / Claude Code so the new MCP server is loaded."
-echo "A licensed COMSOL Multiphysics 5.x/6.x install is still required before comsol_start can open a client."
+unix_root="$(comsol_mcp_unix_path "$COMSOL_ROOT")"
+if comsol_mcp_looks_like_root "$unix_root"; then
+    echo "COMSOL executable detected at $unix_root"
+else
+    echo "Pinned Windows COMSOL 6.2 path from the desktop shortcut:"
+    echo "  C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1"
+    echo "comsol_start can use that install only when this MCP runs on that Windows machine."
+fi

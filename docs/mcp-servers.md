@@ -385,7 +385,25 @@ claude mcp add --scope local playwright -- npx -y @playwright/mcp
 - Python 3.10+
 - Java runtime (required by MPh/COMSOL)
 
-This MCP does **not** bundle COMSOL. The Python server can be installed and registered without it, but `comsol_start` will fail until COMSOL is on the machine (or reachable as a COMSOL Multiphysics Server).
+This MCP does **not** bundle COMSOL. The Python server can be installed and registered without it, but `comsol_start` will fail until COMSOL is on the **same OS** as the MCP process (or reachable as a COMSOL Multiphysics Server).
+
+### Windows 6.2 path (this machine)
+
+The desktop shortcut `COMSOL Multiphysics 6.2.lnk` points at:
+
+```
+C:\Program Files\COMSOL\COMSOL62\Multiphysics_copy1\bin\win64\comsol.exe
+```
+
+That install lives in `Multiphysics_copy1`, not the default `Multiphysics` folder, so MPh's registry scan can miss it. The launcher therefore pins:
+
+```
+COMSOL_ROOT=C:\Program Files\COMSOL\COMSOL62\Multiphysics_copy1
+```
+
+and prepends `bin\win64` to `PATH`. Override with `COMSOL_ROOT` / `COMSOLROOT` if the install moves.
+
+A Cursor Cloud Linux VM cannot execute that `win64` binary. Drive COMSOL 6.2 from Cursor Desktop (or a self-hosted worker) **on the Windows PC that owns the license**.
 
 ### Install
 
@@ -416,7 +434,11 @@ Cursor Desktop / Cloud can also use the project launcher in `.cursor/mcp.json`, 
     "comsol": {
       "command": "/ABSOLUTE/PATH/TO/HOME/.local/share/mcp-servers/COMSOL_Multiphysics_MCP/.venv/bin/comsol-mcp",
       "args": [],
-      "cwd": "/ABSOLUTE/PATH/TO/HOME/.local/share/mcp-servers/COMSOL_Multiphysics_MCP"
+      "cwd": "/ABSOLUTE/PATH/TO/HOME/.local/share/mcp-servers/COMSOL_Multiphysics_MCP",
+      "env": {
+        "COMSOL_ROOT": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1",
+        "COMSOLROOT": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1"
+      }
     }
   }
 }
@@ -489,7 +511,11 @@ All servers configured together:
     },
     "comsol": {
       "command": "/ABSOLUTE/PATH/TO/HOME/.local/share/mcp-servers/COMSOL_Multiphysics_MCP/.venv/bin/comsol-mcp",
-      "cwd": "/ABSOLUTE/PATH/TO/HOME/.local/share/mcp-servers/COMSOL_Multiphysics_MCP"
+      "cwd": "/ABSOLUTE/PATH/TO/HOME/.local/share/mcp-servers/COMSOL_Multiphysics_MCP",
+      "env": {
+        "COMSOL_ROOT": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1",
+        "COMSOLROOT": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1"
+      }
     }
   }
 }
