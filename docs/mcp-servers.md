@@ -18,6 +18,7 @@ Sibyl relies on [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
 | [Feishu MCP (Community)](#feishu-mcp-community) | Optional | Feishu documents & folders | [cso1z/Feishu-MCP](https://github.com/cso1z/Feishu-MCP) |
 | [bioRxiv MCP](#biorxiv-mcp) | Optional | Biology preprint search | [JackKuo666/bioRxiv-MCP-Server](https://github.com/JackKuo666/bioRxiv-MCP-Server) |
 | [Playwright MCP](#playwright-mcp) | Optional | Web browsing automation | [microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp) |
+| [COMSOL MCP](#comsol-mcp) | Optional | COMSOL Multiphysics simulation automation | [wjc9011/COMSOL_Multiphysics_MCP](https://github.com/wjc9011/COMSOL_Multiphysics_MCP) |
 
 ## SSH MCP Server
 
@@ -368,6 +369,61 @@ Or register it via Claude Code CLI:
 claude mcp add --scope local playwright -- npx -y @playwright/mcp
 ```
 
+## COMSOL MCP
+
+> GitHub: [wjc9011/COMSOL_Multiphysics_MCP](https://github.com/wjc9011/COMSOL_Multiphysics_MCP)
+
+**Purpose**: Drive COMSOL Multiphysics from an AI agent — models, geometry, physics, meshing, studies, and results.
+
+**Tools used**: `comsol_start`, `comsol_connect`, `model_create`, `geometry_add_block`, `physics_add_heat_transfer`, `mesh_create`, `study_solve`, `results_evaluate`, and 80+ related tools
+
+**Used by**: Optional multiphysics modeling workflows. Not part of the default Sibyl literature/experiment pipeline.
+
+### Prerequisites
+
+- COMSOL Multiphysics 5.x or 6.x (licensed desktop/server install)
+- Python 3.10+
+- Java runtime (required by MPh/COMSOL)
+
+This MCP does **not** bundle COMSOL. The Python server can be installed and registered without it, but `comsol_start` will fail until COMSOL is on the machine (or reachable as a COMSOL Multiphysics Server).
+
+### Install
+
+```bash
+# From the Sibyl repo root
+chmod +x scripts/install-comsol-mcp.sh scripts/run-comsol-mcp.sh
+./scripts/install-comsol-mcp.sh
+```
+
+The installer clones the upstream repo into `~/.local/share/mcp-servers/COMSOL_Multiphysics_MCP`, creates a dedicated venv, and `pip install -e .` there so Sibyl's own `.venv` is not polluted by `mph` / `chromadb` / `sentence-transformers`.
+
+### Configure (preferred: `claude mcp add`)
+
+```bash
+claude mcp add --scope local comsol -- \
+  "$HOME/.local/share/mcp-servers/COMSOL_Multiphysics_MCP/.venv/bin/comsol-mcp"
+```
+
+`scripts/install-comsol-mcp.sh` runs that command when the Claude Code CLI is available. Otherwise it merges the same entry into `~/.cursor/mcp.json` and `~/.mcp.json`.
+
+Cursor Desktop / Cloud can also use the project launcher in `.cursor/mcp.json`, which calls `scripts/run-comsol-mcp.sh`.
+
+### Manual JSON fallback
+
+```json
+{
+  "mcpServers": {
+    "comsol": {
+      "command": "/ABSOLUTE/PATH/TO/HOME/.local/share/mcp-servers/COMSOL_Multiphysics_MCP/.venv/bin/comsol-mcp",
+      "args": [],
+      "cwd": "/ABSOLUTE/PATH/TO/HOME/.local/share/mcp-servers/COMSOL_Multiphysics_MCP"
+    }
+  }
+}
+```
+
+> **Important**: Keep the server name `"comsol"` so tools resolve as `mcp__comsol__comsol_start`. Restart Cursor or Claude Code after registering the server.
+
 ## Minimal Manual MCP JSON Example
 
 A minimal configuration with only the two required servers:
@@ -430,6 +486,10 @@ All servers configured together:
     "playwright": {
       "command": "npx",
       "args": ["-y", "@playwright/mcp"]
+    },
+    "comsol": {
+      "command": "/ABSOLUTE/PATH/TO/HOME/.local/share/mcp-servers/COMSOL_Multiphysics_MCP/.venv/bin/comsol-mcp",
+      "cwd": "/ABSOLUTE/PATH/TO/HOME/.local/share/mcp-servers/COMSOL_Multiphysics_MCP"
     }
   }
 }

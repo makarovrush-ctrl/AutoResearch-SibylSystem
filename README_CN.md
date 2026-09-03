@@ -457,6 +457,7 @@ workspaces/<project>/
 | [Feishu MCP](https://github.com/cso1z/Feishu-MCP) | 可选 | 飞书文档操作 | `npm install -g feishu-mcp` |
 | [bioRxiv MCP](https://github.com/JackKuo666/bioRxiv-MCP-Server) | 可选 | 生物预印本 | `pip install biorxiv-mcp-server` |
 | [Playwright MCP](https://github.com/microsoft/playwright-mcp) | 可选 | 网页浏览 | `npm install -g @playwright/mcp` |
+| [COMSOL MCP](https://github.com/wjc9011/COMSOL_Multiphysics_MCP) | 可选 | COMSOL 多物理场仿真 | `./scripts/install-comsol-mcp.sh` |
 
 完整安装与 MCP 注册细节见 **[MCP 服务指南](docs/mcp-servers.md)**。
 

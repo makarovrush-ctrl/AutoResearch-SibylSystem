@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "comsol": {
+      "command": "bash",
+      "args": ["scripts/run-comsol-mcp.sh"]
+    }
+  }
+}

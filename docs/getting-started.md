@@ -86,6 +86,7 @@ Sibyl relies on several MCP servers. `setup.sh` configures the required ones aut
 - [Lark](https://github.com/larksuite/lark-openapi-mcp)/[Feishu](https://github.com/cso1z/Feishu-MCP) MCP — cloud document sync
 - [bioRxiv MCP](https://github.com/JackKuo666/bioRxiv-MCP-Server) — biology preprints (`.venv/bin/pip install biorxiv-mcp-server`)
 - [Playwright MCP](https://github.com/microsoft/playwright-mcp) — web browsing
+- [COMSOL MCP](https://github.com/wjc9011/COMSOL_Multiphysics_MCP) — COMSOL Multiphysics automation (`./scripts/install-comsol-mcp.sh`; requires a licensed COMSOL install)
 
 ### GPU Server Setup
 
