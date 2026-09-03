@@ -395,15 +395,13 @@ The desktop shortcut `COMSOL Multiphysics 6.2.lnk` points at:
 C:\Program Files\COMSOL\COMSOL62\Multiphysics_copy1\bin\win64\comsol.exe
 ```
 
-That install lives in `Multiphysics_copy1`, not the default `Multiphysics` folder, so MPh's registry scan can miss it. The launcher therefore pins:
+That install lives in `Multiphysics_copy1`, not the default `Multiphysics` folder, so MPh's registry scan can miss it. `.cursor/mcp.json` launches `scripts/run-comsol-mcp.cmd`, which:
 
-```
-COMSOL_ROOT=C:\Program Files\COMSOL\COMSOL62\Multiphysics_copy1
-```
+1. Puts `...\Multiphysics_copy1\bin\win64` first on `PATH` so `where comsol` finds 6.2
+2. Auto-clones and pip-installs the MCP venv on first start
+3. Starts `python -m src.server`
 
-and prepends `bin\win64` to `PATH`. Override with `COMSOL_ROOT` / `COMSOLROOT` if the install moves.
-
-A Cursor Cloud Linux VM cannot execute that `win64` binary. Drive COMSOL 6.2 from Cursor Desktop (or a self-hosted worker) **on the Windows PC that owns the license**.
+Open this repo in **Cursor Desktop on that Windows PC**, enable the project `comsol` MCP, and wait for the first-run install. A Cursor Cloud Linux VM cannot execute `comsol.exe`.
 
 ### Install
 

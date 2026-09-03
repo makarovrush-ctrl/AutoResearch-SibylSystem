@@ -1,8 +1,7 @@
 {
   "mcpServers": {
     "comsol": {
-      "command": "bash",
-      "args": ["scripts/run-comsol-mcp.sh"],
+      "command": "${workspaceFolder}/scripts/run-comsol-mcp.cmd",
       "env": {
         "COMSOL_ROOT": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1",
         "COMSOLROOT": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1"
