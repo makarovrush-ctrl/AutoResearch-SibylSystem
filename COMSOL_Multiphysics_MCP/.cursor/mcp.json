@@ -4,7 +4,7 @@
       "type": "stdio",
       "command": "py",
       "args": ["-3", "-m", "src.server"],
-      "cwd": "${workspaceFolder}/COMSOL_Multiphysics_MCP",
+      "cwd": "${workspaceFolder}",
       "env": {
         "COMSOL_ROOT": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1",
         "COMSOLROOT": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1",

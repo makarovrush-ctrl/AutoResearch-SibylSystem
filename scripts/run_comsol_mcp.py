@@ -21,7 +21,7 @@ WIN_ROOT_DEFAULT = r"C:\Program Files\COMSOL\COMSOL62\Multiphysics_copy1"
 
 
 def _bundled_home() -> Path:
-    return Path(__file__).resolve().parent.parent / "repositories" / "COMSOL_Multiphysics_MCP"
+    return Path(__file__).resolve().parent.parent / "COMSOL_Multiphysics_MCP"
 
 
 def _home() -> Path:

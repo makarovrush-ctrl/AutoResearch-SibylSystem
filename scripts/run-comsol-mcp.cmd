@@ -3,7 +3,7 @@ setlocal EnableExtensions
 set "SCRIPT_DIR=%~dp0"
 if "%COMSOL_ROOT%"=="" set "COMSOL_ROOT=C:\Program Files\COMSOL\COMSOL62\Multiphysics_copy1"
 if "%COMSOLROOT%"=="" set "COMSOLROOT=%COMSOL_ROOT%"
-if "%COMSOL_MCP_HOME%"=="" set "COMSOL_MCP_HOME=%SCRIPT_DIR%..\repositories\COMSOL_Multiphysics_MCP"
+if "%COMSOL_MCP_HOME%"=="" set "COMSOL_MCP_HOME=%SCRIPT_DIR%..\COMSOL_Multiphysics_MCP"
 set "PATH=%COMSOL_ROOT%\bin\win64;%PATH%"
 
 where py >nul 2>&1
