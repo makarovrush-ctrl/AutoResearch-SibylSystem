@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "comsol": {
+      "type": "stdio",
+      "command": "py",
+      "args": ["-3", "-m", "src.server"],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "COMSOL_ROOT": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1",
+        "COMSOLROOT": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1",
+        "PATH": "C:\\Program Files\\COMSOL\\COMSOL62\\Multiphysics_copy1\\bin\\win64;${env:PATH}"
+      }
+    }
+  }
+}

@@ -361,6 +361,7 @@ These are not required but enhance functionality. Configure only if the user wan
 | [Feishu MCP](https://github.com/cso1z/Feishu-MCP) | Feishu documents | `npm install -g feishu-mcp` | `claude mcp add --scope local feishu -- feishu-mcp` |
 | [bioRxiv](https://github.com/JackKuo666/bioRxiv-MCP-Server) | Biology preprints | `.venv/bin/pip install biorxiv-mcp-server` | `claude mcp add --scope local claude_ai_bioRxiv -- .venv/bin/python3 -m biorxiv_mcp` |
 | [Playwright](https://github.com/microsoft/playwright-mcp) | Web browsing | `npm install -g @playwright/mcp` | `claude mcp add --scope local playwright -- npx -y @playwright/mcp` |
+| [COMSOL](https://github.com/makarovrush-ctrl/COMSOL_Multiphysics_MCP) | COMSOL Multiphysics automation (own GitHub repo for Cloud Agents) | `./scripts/install-comsol-mcp.sh` | `claude mcp add --scope local comsol -- ~/.local/share/mcp-servers/COMSOL_Multiphysics_MCP/.venv/bin/comsol-mcp` |
 
 See [MCP Servers Guide](mcp-servers.md) for full configuration details of each, including environment variables for Lark/Feishu.
 
