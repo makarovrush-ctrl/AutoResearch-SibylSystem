@@ -18,7 +18,7 @@ Sibyl relies on [Model Context Protocol (MCP)](https://modelcontextprotocol.io/)
 | [Feishu MCP (Community)](#feishu-mcp-community) | Optional | Feishu documents & folders | [cso1z/Feishu-MCP](https://github.com/cso1z/Feishu-MCP) |
 | [bioRxiv MCP](#biorxiv-mcp) | Optional | Biology preprint search | [JackKuo666/bioRxiv-MCP-Server](https://github.com/JackKuo666/bioRxiv-MCP-Server) |
 | [Playwright MCP](#playwright-mcp) | Optional | Web browsing automation | [microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp) |
-| [COMSOL MCP](#comsol-mcp) | Optional | COMSOL Multiphysics simulation automation | [wjc9011/COMSOL_Multiphysics_MCP](https://github.com/wjc9011/COMSOL_Multiphysics_MCP) |
+| [COMSOL MCP](#comsol-mcp) | Optional | COMSOL Multiphysics simulation automation | [makarovrush-ctrl/COMSOL_Multiphysics_MCP](https://github.com/makarovrush-ctrl/COMSOL_Multiphysics_MCP) (fork of [wjc9011/COMSOL_Multiphysics_MCP](https://github.com/wjc9011/COMSOL_Multiphysics_MCP)) |
 
 ## SSH MCP Server
 
@@ -371,13 +371,16 @@ claude mcp add --scope local playwright -- npx -y @playwright/mcp
 
 ## COMSOL MCP
 
-> GitHub: [wjc9011/COMSOL_Multiphysics_MCP](https://github.com/wjc9011/COMSOL_Multiphysics_MCP)
+> Dedicated repo: [makarovrush-ctrl/COMSOL_Multiphysics_MCP](https://github.com/makarovrush-ctrl/COMSOL_Multiphysics_MCP)  
+> Upstream: [wjc9011/COMSOL_Multiphysics_MCP](https://github.com/wjc9011/COMSOL_Multiphysics_MCP)
 
 **Purpose**: Drive COMSOL Multiphysics from an AI agent — models, geometry, physics, meshing, studies, and results.
 
 **Tools used**: `comsol_start`, `comsol_connect`, `model_create`, `geometry_add_block`, `physics_add_heat_transfer`, `mesh_create`, `study_solve`, `results_evaluate`, and 80+ related tools
 
 **Used by**: Optional multiphysics modeling workflows. Not part of the default Sibyl literature/experiment pipeline.
+
+Cursor Cloud Agents groups by **GitHub repository**. A folder inside Sibyl will not appear as its own group. Open [makarovrush-ctrl/COMSOL_Multiphysics_MCP](https://github.com/makarovrush-ctrl/COMSOL_Multiphysics_MCP) as a Cursor workspace, and grant the Cursor GitHub App access to that repo, if you want it listed separately (same pattern as `comsol-mcp` / `solidworks-mcp`).
 
 ### Prerequisites
 
@@ -395,22 +398,26 @@ The desktop shortcut `COMSOL Multiphysics 6.2.lnk` points at:
 C:\Program Files\COMSOL\COMSOL62\Multiphysics_copy1\bin\win64\comsol.exe
 ```
 
-That install lives in `Multiphysics_copy1`, not the default `Multiphysics` folder, so MPh's registry scan can miss it. `.cursor/mcp.json` launches `scripts/run-comsol-mcp.cmd`, which:
+That install lives in `Multiphysics_copy1`, not the default `Multiphysics` folder, so MPh's registry scan can miss it.
 
-1. Puts `...\Multiphysics_copy1\bin\win64` first on `PATH` so `where comsol` finds 6.2
-2. Auto-clones and pip-installs the MCP venv on first start
-3. Starts `python -m src.server`
+**Preferred:** clone [makarovrush-ctrl/COMSOL_Multiphysics_MCP](https://github.com/makarovrush-ctrl/COMSOL_Multiphysics_MCP) and open **that** folder in Cursor Desktop on the Windows PC. Copy `.cursor/mcp.json` from this repo's `COMSOL_Multiphysics_MCP/.cursor/mcp.json` if the fork does not already have it. Then:
 
-Open this repo in **Cursor Desktop on that Windows PC**, enable the project `comsol` MCP, and wait for the first-run install. A Cursor Cloud Linux VM cannot execute `comsol.exe`.
+```bat
+py -3 -m pip install -e .
+```
 
-The upstream server is vendored at `COMSOL_Multiphysics_MCP/` (source from [wjc9011/COMSOL_Multiphysics_MCP](https://github.com/wjc9011/COMSOL_Multiphysics_MCP)). `.cursor/mcp.json` registers it as a project `stdio` MCP. On Windows, first run:
+Enable **comsol** in Cursor Settings → MCP. The project MCP prepends `...\Multiphysics_copy1\bin\win64` to `PATH` so `where comsol` finds 6.2.
+
+A Cursor Cloud Linux VM cannot execute `comsol.exe`.
+
+Sibyl also vendors the upstream source at `COMSOL_Multiphysics_MCP/` so this repo can register the same MCP without a second clone. `.cursor/mcp.json` uses `cwd` `${workspaceFolder}/COMSOL_Multiphysics_MCP`. On Windows, from that folder:
 
 ```bat
 cd COMSOL_Multiphysics_MCP
 py -3 -m pip install -e .
 ```
 
-Then enable **comsol** in Cursor Settings → MCP.
+Then enable **comsol** in Cursor Settings → MCP. See `COMSOL_Multiphysics_MCP/CURSOR.md`.
 
 ### Install
 

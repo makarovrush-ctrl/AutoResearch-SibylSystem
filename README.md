@@ -546,7 +546,7 @@ Repo-level helper utilities belong under `tools/`, not `workspaces/`. If a direc
 | [Feishu MCP](https://github.com/cso1z/Feishu-MCP) | Optional | Feishu documents | `npm install -g feishu-mcp` |
 | [bioRxiv MCP](https://github.com/JackKuo666/bioRxiv-MCP-Server) | Optional | Biology preprints | `pip install biorxiv-mcp-server` |
 | [Playwright MCP](https://github.com/microsoft/playwright-mcp) | Optional | Web browsing | `npm install -g @playwright/mcp` |
-| [COMSOL MCP](https://github.com/wjc9011/COMSOL_Multiphysics_MCP) | Optional | COMSOL Multiphysics automation | `./scripts/install-comsol-mcp.sh` |
+| [COMSOL MCP](https://github.com/makarovrush-ctrl/COMSOL_Multiphysics_MCP) | Optional | COMSOL Multiphysics automation (separate GitHub repo) | `./scripts/install-comsol-mcp.sh` |
 
 See **[MCP Servers Guide](docs/mcp-servers.md)** for installation and MCP registration details.
 
