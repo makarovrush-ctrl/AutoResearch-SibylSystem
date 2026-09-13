@@ -1,5 +1,5 @@
 ---
-model: deepseek-v4-pro
+model: deepseek-flash
 max_tokens: 16000
 temperature: 0.3
 ---

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ═══════════════════════════════════════════════════════════════════════
 # Single source of truth for model routing. Source this, then call
-# sibyl_apply_model <anthropic|deepseek>.
+# sibyl_apply_model <anthropic|deepseek|deepseek-pro>.
 #
 # It exports the FULL provider env explicitly, so nothing inherited from a
 # shell profile, a parent Terminal, or a stale settings file can override
@@ -15,8 +15,9 @@ sibyl_apply_model() {
     local kind="${1:-anthropic}" settings
 
     case "$kind" in
-        deepseek)  settings="$HOME/.claude/settings.deepseek.json" ;;
-        anthropic) settings="$HOME/.claude/settings.anthropic.json" ;;
+        deepseek)      settings="$HOME/.claude/settings.deepseek.json" ;;
+        deepseek-pro)  settings="$HOME/.claude/settings.deepseek-pro.json" ;;
+        anthropic)     settings="$HOME/.claude/settings.anthropic.json" ;;
         *)
             echo "  ⚠️  Unknown model '$kind' — refusing to guess. Using anthropic." >&2
             kind="anthropic"; settings="$HOME/.claude/settings.anthropic.json" ;;
@@ -72,7 +73,7 @@ sibyl_model_label() {
         claude-sonnet-5)  echo "Sonnet 5" ;;
         claude-sonnet-4-6) echo "Sonnet 4.6" ;;
         deepseek-v4-pro)  echo "DeepSeek v4 Pro" ;;
-        deepseek-v4-flash) echo "DeepSeek v4 Flash" ;;
+        deepseek-flash)   echo "DeepSeek Flash" ;;
         *)                echo "$1" ;;
     esac
 }
@@ -115,8 +116,9 @@ sibyl_pin_exact_model() {
 sibyl_default_model_for() {
     local kind="${1:-anthropic}" f
     case "$kind" in
-        deepseek) f="$HOME/.claude/settings.deepseek.json" ;;
-        *)        f="$HOME/.claude/settings.anthropic.json" ;;
+        deepseek)      f="$HOME/.claude/settings.deepseek.json" ;;
+        deepseek-pro)  f="$HOME/.claude/settings.deepseek-pro.json" ;;
+        *)             f="$HOME/.claude/settings.anthropic.json" ;;
     esac
     python3 -c "import json,sys;print(json.load(open(sys.argv[1]))['model'])" "$f" 2>/dev/null
 }

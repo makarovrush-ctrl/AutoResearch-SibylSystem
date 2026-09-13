@@ -14,7 +14,7 @@ hits=$(grep -ln "^export ANTHROPIC" "$HOME"/.zshrc "$HOME"/.zprofile "$HOME"/.zs
 if [ -n "$hits" ]; then echo "  ❌ leaking: $hits"; fail=1; else echo "  ✅ clean"; fi
 
 echo "── 2. Settings files ──"
-for f in settings.json settings.anthropic.json settings.deepseek.json; do
+for f in settings.json settings.anthropic.json settings.deepseek.json settings.deepseek-pro.json; do
     python3 - "$HOME/.claude/$f" <<'PY'
 import json, sys
 p = sys.argv[1]
@@ -111,7 +111,7 @@ sibyl_cost_guards || fail=1
 
 echo "── 7. Live endpoint check (add --live to run; makes 1 tiny API call each) ──"
 if [ "${1:-}" = "--live" ]; then
-    for f in settings.anthropic.json settings.deepseek.json; do
+    for f in settings.anthropic.json settings.deepseek.json settings.deepseek-pro.json; do
         read -r url key model <<<"$(python3 -c "
 import json,sys
 d=json.load(open('$HOME/.claude/$f')); e=d['env']

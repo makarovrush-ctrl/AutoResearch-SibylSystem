@@ -1,5 +1,5 @@
 ---
-model: deepseek-reasoner
+model: deepseek-flash
 max_tokens: 64000
 temperature: 0.4
 ---

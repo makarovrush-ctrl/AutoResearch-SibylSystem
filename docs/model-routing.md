@@ -7,13 +7,19 @@ One rule: **the model is chosen explicitly at launch, never inherited.**
 | Entry point | Model |
 |---|---|
 | `Start New Sibyl Project (Opus 5).command` | `opus` → Opus 5, standard 200K context (Anthropic) |
-| `Start New Sibyl Project (DeepSeek v4 pro).command` | `deepseek-v4-pro` (DeepSeek) |
+| `Start New Sibyl Project (DeepSeek Flash).command` | `deepseek-flash` (DeepSeek — default/cost mode) |
+| `Start New Sibyl Project (DeepSeek v4 pro).command` | `deepseek-v4-pro` (DeepSeek — pro opt-in) |
 | `Sibyl Research System.command` (no arg) | Anthropic; `--deepseek` for cost mode |
 | any resume shortcut | same **provider and model** as the transcript |
 | plain `claude` | `model` field in `~/.claude/settings.json` (Anthropic) |
 
-Provider credentials live in `~/.claude/settings.{anthropic,deepseek}.json`
+Provider credentials live in `~/.claude/settings.{anthropic,deepseek,deepseek-pro}.json`
 (chmod 600, outside git). Each launcher passes `--settings` **and** `--model`.
+
+DeepSeek has two tiers, selected by the `--model` kind: `deepseek` →
+`deepseek-flash` (fast/cheap, the default) and `deepseek-pro` →
+`deepseek-v4-pro`. Both point at the same DeepSeek endpoint; only the model id
+differs. Subagent tiers follow the same split (`.claude/agents-deepseek{,-pro}/`).
 
 ## Model strings: alias vs API id
 
@@ -36,7 +42,9 @@ whole-codebase pass, never as a standing default.
 
 Resuming preserves the **provider** absolutely — a DeepSeek chat never reopens
 on Anthropic and, more importantly, an Anthropic chat never reopens on DeepSeek.
-The **model is preserved too**: a Sonnet thread reopens on Sonnet.
+The **model is preserved too**: a Sonnet thread reopens on Sonnet, and a
+`deepseek-v4-pro` thread reopens on the pro tier (not silently downgraded to
+flash).
 
 The old rule "upgraded" every resumed chat to the configured default, which
 meant each resume silently re-entered the most expensive model available. That

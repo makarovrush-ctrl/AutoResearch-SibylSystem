@@ -10,6 +10,9 @@ __pycache__/
 dist/
 build/
 workspaces/
+# Rebuttal workspaces hold unpublished manuscripts under review. The remote is a
+# public fork -- never let a `git add -A` push a paper that is still in peer review.
+rebuttals/
 .sibyl/
 pytest-of-*/
 pytest-current
@@ -25,6 +28,8 @@ tools/*/.tmp-state/
 !.claude/agents-anthropic/*.md
 !.claude/agents-deepseek/
 !.claude/agents-deepseek/*.md
+!.claude/agents-deepseek-pro/
+!.claude/agents-deepseek-pro/*.md
 !.claude/skills/
 !.claude/skills/**/SKILL.md
 !.claude/settings.json

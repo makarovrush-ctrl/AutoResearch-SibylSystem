@@ -24,7 +24,7 @@ if [ "${1:-}" = "--model" ]; then FORCED_MODEL="${2:-}"; shift 2 || true; fi
 if [ $# -gt 0 ] && [ -n "$1" ]; then PROMPT="$1"; fi
 
 if [ -z "$SESSION_ID" ]; then
-    echo "usage: sibyl-resume.sh <session-uuid> [--model anthropic|deepseek] [prompt]" >&2
+    echo "usage: sibyl-resume.sh <session-uuid> [--model anthropic|deepseek|deepseek-pro] [prompt]" >&2
     exit 1
 fi
 
@@ -44,9 +44,10 @@ if [ -n "$FORCED_MODEL" ]; then
 else
     LAST_MODEL="$(detect_model || true)"
     case "$LAST_MODEL" in
-        deepseek*) KIND="deepseek";  EXACT="$LAST_MODEL"; ORIGIN="detected from transcript ($LAST_MODEL)" ;;
-        claude*)   KIND="anthropic"; EXACT="$LAST_MODEL"; ORIGIN="detected from transcript ($LAST_MODEL)" ;;
-        *)         KIND="anthropic"; EXACT="";            ORIGIN="no record found — defaulting to quality mode" ;;
+        deepseek-v4-pro) KIND="deepseek-pro"; EXACT="$LAST_MODEL"; ORIGIN="detected from transcript ($LAST_MODEL)" ;;
+        deepseek*)       KIND="deepseek";     EXACT="$LAST_MODEL"; ORIGIN="detected from transcript ($LAST_MODEL)" ;;
+        claude*)         KIND="anthropic";    EXACT="$LAST_MODEL"; ORIGIN="detected from transcript ($LAST_MODEL)" ;;
+        *)               KIND="anthropic";    EXACT="";            ORIGIN="no record found — defaulting to quality mode" ;;
     esac
 fi
 
